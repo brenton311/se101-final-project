@@ -1,0 +1,5 @@
+Tentative Difficulty: 3.5 (Possibly Too Difficult)
+
+This seems like a lot of work. I suppose it is possible. Stage your 
+project so you can atleast have some code on your Tiva that does something
+(viewing messages) if plans go awry.
