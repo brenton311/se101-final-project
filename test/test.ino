@@ -31,7 +31,21 @@ void setup()
 //void  OrbitOledClear();
 //void  OrbitOledClearBuffer();
 //void  OrbitOledUpdate();
+    Serial.begin(9600);
     OrbitOledInit();
+}
+
+// double mapF (double x, double in_min, double in_max, double out_min, double out_max)
+// {
+//   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+// }
+
+
+// Scale pot position between 0-100
+int getPotPosition(int pin)
+{
+    int value = analogRead(pin);
+    return map(value, 0, 4096, 0, 100);
 }
 
 // the loop routine runs over and over again forever:
@@ -46,4 +60,6 @@ void loop()
 
     OrbitOledSetCursor(0, 4);
     OrbitOledPutString("A SE'XXI Project'");
+
+    Serial.println(getPotPosition(A0));
 }
