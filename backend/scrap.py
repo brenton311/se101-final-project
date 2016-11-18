@@ -100,10 +100,12 @@ def merge_messages(base_json, new_json):
 if __name__ == '__main__':
 	# SEXX'I = 1150546131643551
 	# Smartest People in Canada = 1127396163964738
-	data = json.loads(download_latest_msgs(int(sys.argv[1]), '1127396163964738'))
+	max_msgs = 10
+	data = json.loads(download_latest_msgs(max_msgs, '1127396163964738'))
 
+	print('Waiting for messages...')
 	while True:
-		new_data = json.loads(download_latest_msgs(int(sys.argv[1]), '1127396163964738'))
+		new_data = json.loads(download_latest_msgs(max_msgs, '1127396163964738'))
 		new_msgs = merge_messages(data, new_data)
 		for x in new_msgs:
 			try:
