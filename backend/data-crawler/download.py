@@ -88,6 +88,16 @@ def get_newest_msg(msgs):
 
 	return base_newest
 
+def find_oldest_msg(msgs):
+	base_newest = float('inf')
+	# print(msgs)
+	for msg in msgs:
+		timestamp = int(msg['timestamp'])
+		if timestamp < base_newest:
+			base_newest = timestamp
+
+	return base_newest
+
 """
 	Extracts the useful fields from the msg dict
 """
@@ -141,28 +151,50 @@ def save_msgs(db, msgs):
 	for msg in msgs:
 		db.save(msg)
 
+def find_newest_msg(db):
+	base_newest = 0
+	for msg_doc in db:
+		msg = db[msg_doc]
+		timestamp = int(msg['timestamp'])
+		if timestamp > base_newest:
+			base_newest = timestamp
+
+	return base_newest
+
+
 if __name__ == '__main__':
 	# SEXX'I = 1150546131643551
 	# Smartest People in Canada = 1127396163964738
 	# Pronto, George, Brenton = 1065671046884259
 
 	# group_id = '1150546131643551'
-	# group_id = '1127396163964738'
-	group_id = '1065671046884259'
+	group_id = '1127396163964738'
+	# group_id = '1065671046884259'
 
 	db_msgs = couch['messages']
 
-	max_msgs = 10
-	base_data = download_latest_msgs(10, group_id)
-	base_msgs = extract_msgs(base_data)
+	max_msgs = 30
+	# base_data = download_latest_msgs(max_msgs, group_id)
+	# base_msgs = extract_msgs(base_data)
 
-	# save_msgs(db_msgs, get_messages_since(data, 0))
-	newest_time = get_newest_msg(base_msgs)
+	# save_msgs(db_msgs, get_messages_since(base_msgs, 0))
+	# newest_time = get_newest_msg(base_msgs)
+	newest_time = find_newest_msg(db_msgs)
 
-	print('Waiting for messages...')
+	print('Starting...')
 	while True:
-		new_data = download_latest_msgs(max_msgs, group_id)
-		new_msgs = extract_msgs(new_data)
+		oldest_updated = float('inf')
+		new_msgs = []
+		while oldest_updated > newest_time:
+			print('Getting new messages...')
+			new_data = download_latest_msgs(max_msgs, group_id)
+			new_msgs = extract_msgs(new_data)
+			new_msgs.extend(get_messages_since(new_msgs, newest_time))
+
+			if len(new_msgs) > 0:
+				oldest_updated = find_oldest_msg(new_msgs)
+
+		# Ignore the messages already downloaded
 		new_msgs = get_messages_since(new_msgs, newest_time)
 
 		for x in new_msgs:
@@ -176,6 +208,6 @@ if __name__ == '__main__':
 		if len(new_msgs) > 0:
 			newest_time = get_newest_msg(new_msgs)
 
-		# save_msgs(db_msgs, new_msgs)
+		save_msgs(db_msgs, new_msgs)
 
-		# time.sleep(1)
+		time.sleep(1)
