@@ -14,7 +14,8 @@ import android.widget.TextView;
 public class Comment extends FrameLayout implements View.OnClickListener {
 
     String message = "";
-    int time = 0;
+    String author;
+    String date;
     int likes = 0;
     int bookmarks = 0;
     Context parentActivity;
@@ -34,11 +35,12 @@ public class Comment extends FrameLayout implements View.OnClickListener {
         init();
     }
 
-    public Comment(Context context, String message, int time, int likes, int bookmarks) {
+    public Comment(Context context, String message, String author, String date, int likes, int bookmarks) {
         super(context);
         parentActivity = context;
         this.message = message;
-        this.time = time;
+        this.author = author;
+        this.date = date;
         this.likes = likes;
         this.bookmarks = bookmarks;
         init();
@@ -50,6 +52,8 @@ public class Comment extends FrameLayout implements View.OnClickListener {
         setOnClickListener(this);
 
         ((TextView)(findViewById(R.id.message))).setText(message);
+        ((TextView)(findViewById(R.id.author))).setText(author);
+        ((TextView)(findViewById(R.id.date))).setText(date);
         ((TextView)(findViewById(R.id.numLikes))).setText("" + likes);
         ((TextView)(findViewById(R.id.numBookmarks))).setText("" + bookmarks);
         /*

@@ -38,7 +38,7 @@ public class FeedFragment extends Fragment {
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
         for (int i = 0; i < 10; i++) {
-            Comment cmt = new Comment(getActivity(), "Message #"+i,0,5,10);
+            Comment cmt = new Comment(getActivity(), "Message #"+i, "George Eisa", "Today at 8:32 am",5,10);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             linear.addView(cmt);
         }

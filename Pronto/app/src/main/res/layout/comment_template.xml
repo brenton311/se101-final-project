@@ -2,10 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-   >
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:background="#918e8e"
+        android:background="@drawable/comment_background"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
@@ -35,7 +35,7 @@
                     android:paddingTop="8dp"
                     android:textSize="17dp"
                     android:textStyle="normal"
-                    android:layout_alignParentTop="true"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentStart="true"/>
 
                 <TextView
@@ -47,7 +47,7 @@
                     android:paddingTop="8dp"
                     android:textSize="17dp"
                     android:textStyle="normal"
-                    android:layout_alignParentTop="true"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentEnd="true" />
 
             </RelativeLayout>
@@ -67,17 +67,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/numBookmarks"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageButton
+                    android:id="@+id/viewInNewBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:gravity="end"
-                    android:text = "3"
-                    android:paddingTop="8dp"
+                    android:src= "@drawable/openInNew"
+                    android:scaleType = "centerCrop"
                     android:textSize="17dp"
                     android:textStyle="normal"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentEnd="true" />
+                    android:layout_marginEnd="15dp"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/likeBtn" />
+
+                <ImageButton
+                    android:id="@+id/likeBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="end"
+                    android:src= "@drawable/eyes"
+                    android:scaleType = "centerCrop"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="4dp"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/numLikes" />
 
                 <TextView
                     android:id="@+id/numLikes"
@@ -85,12 +99,36 @@
                     android:layout_height="wrap_content"
                     android:gravity="start"
                     android:text = "35"
-                    android:paddingTop="8dp"
                     android:textSize="17dp"
                     android:textStyle="normal"
-                    android:layout_marginEnd="8dp"
-                    android:layout_alignParentTop="true"
+                    android:layout_marginEnd="15dp"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/bookmarkBtn" />
+
+                <ImageButton
+                    android:id="@+id/bookmarkBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="end"
+                    android:src= "@drawable/bookmarkEmpty"
+                    android:scaleType = "centerCrop"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="4dp"
+                    android:layout_centerVertical="true"
                     android:layout_toStartOf="@+id/numBookmarks" />
+
+                <TextView
+                    android:id="@+id/numBookmarks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text = "3"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true" />
+
 
             </RelativeLayout>
 
