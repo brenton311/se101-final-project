@@ -1,5 +1,6 @@
 package com.redeyesoftware.pronto;
 
+import android.content.Intent;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,4 +16,5 @@ public class MainPage extends AppCompatActivity {
         ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
     }
+
 }

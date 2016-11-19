@@ -11,29 +11,21 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.redeyesoftware.pronto.MainPage">
 
-    <!--
-    <android.support.design.widget.AppBarLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content">
-         <include
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             layout="@layout/layout_tab"/>
-         <android.support.design.widget.TabLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:id="@+id/tablayout"
-             app:tabMode="fixed"
-             app:tabGravity="fill"
-             />
 
-     </android.support.design.widget.AppBarLayout>
-     -->
     <android.support.v4.view.ViewPager
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
+        <android.support.design.widget.TabLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            app:tabIndicatorColor = "#000000"
+            app:tabPaddingBottom = "0dp"
+            app:tabPaddingTop="0dp" />
+
+    </android.support.v4.view.ViewPager>
 
 
 </RelativeLayout>
