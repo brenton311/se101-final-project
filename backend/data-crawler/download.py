@@ -71,7 +71,7 @@ def download_latest_msgs(num_msgs, chat_id):
 
 def get_user_name(user_id, token):
 	graph_url = "https://graph.facebook.com/"
-	r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": app_key})
+	r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
 	# print(r.text)
 	
 	json_data = json.loads(r.text)
@@ -93,7 +93,8 @@ def get_newest_msg(msgs):
 """
 def compress_msg(msg):
 	zip_msg = {}
-	# print(msg)
+
+	# Facebook provided data
 	zip_msg['author_id'] = msg.get('author', '').split(':')
 	if len(zip_msg.get('author_id')) > 1:
 		zip_msg['author_id'] = zip_msg.get('author_id')[1]
@@ -104,6 +105,12 @@ def compress_msg(msg):
 	zip_msg['attachments'] = msg.get('attachments', '')
 	zip_msg['group_id'] = msg.get('thread_id', '')
 	zip_msg['text'] = msg.get('body', '')
+
+	# Custom data
+	zip_msg['score'] = 0.0
+	zip_msg['likes'] = 0
+	zip_msg['dislikes'] = 0
+	zip_msg['bookmarks'] = 0
 
 	return zip_msg
 
@@ -132,16 +139,7 @@ def get_messages_since(msgs, since_time):
 
 def save_msgs(db, msgs):
 	for msg in msgs:
-		# print(msg)
-		# Take the data we need out of the json
-		zip_msg = {}
-		zip_msg['author_id'] = msg.get('author', '').split(':')[1]
-		zip_msg['timestamp'] = msg.get('timestamp', '')
-		zip_msg['attachments'] = msg.get('attachments', '')
-		zip_msg['group_id'] = msg.get('thread_id', '')
-		zip_msg['text'] = msg.get('body', '')
-
-		db.save(zip_msg)
+		db.save(msg)
 
 if __name__ == '__main__':
 	# SEXX'I = 1150546131643551
