@@ -8,6 +8,7 @@ import time
 import StringIO
 import requests
 import time
+import couchdb
 
 __author__ = "Raghav Sood"
 __copyright__ = "Copyright 2014"
@@ -17,6 +18,9 @@ __version__ = "1.0"
 __maintainer__ = "Raghav Sood"
 __email__ = "raghavsood@appaholics.in"
 __status__ = "Production"
+
+
+couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
 
 
 app_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
@@ -72,41 +76,58 @@ def get_user_name(user_id, token):
 
 	return json_data["name"]
 
-def merge_messages(base_json, new_json):
+def get_newest_msg(msgs_json):
 	base_newest = 0
-	# print(base_json)
-	# print(base_json['payload'])
-	for msg in base_json['payload']['actions']:
+	for msg in msgs_json['payload']['actions']:
 		timestamp = int(msg['timestamp'])
 		if timestamp > base_newest:
 			base_newest = timestamp
 
-	num_new = 0
+	return base_newest
 
+def get_messages_since(new_json, since_time):
 	new_msgs = []
 
 	for msg in new_json['payload']['actions']:
 		timestamp = int(msg['timestamp'])
-		if timestamp > base_newest:
+		if timestamp > since_time:
 			new_msgs.append(msg)
-			# base_json['payload']['actions'].append(msg)
 			
-			num_new += 1
-	
-	base_json['payload']['actions'] += new_msgs
-
 	return new_msgs
+
+def save_msgs(db, msgs):
+	for msg in msgs:
+		# print(msg)
+		# Take the data we need out of the json
+		zip_msg = {}
+		zip_msg['author_id'] = msg.get('author', '').split(':')[1]
+		zip_msg['timestamp'] = msg.get('timestamp', '')
+		zip_msg['attachments'] = msg.get('attachments', '')
+		zip_msg['group_id'] = msg.get('thread_id', '')
+		zip_msg['text'] = msg.get('body', '')
+
+		db.save(zip_msg)
 
 if __name__ == '__main__':
 	# SEXX'I = 1150546131643551
 	# Smartest People in Canada = 1127396163964738
+	group_id = '1150546131643551'
+
+	db_msgs = couch['messages']
+
 	max_msgs = 10
-	data = json.loads(download_latest_msgs(max_msgs, '1127396163964738'))
+	data = json.loads(download_latest_msgs(200, group_id))
+	# print(data)
+	save_msgs(db_msgs, get_messages_since(data, 0))
+	newest_time = get_newest_msg(data)
+
 
 	print('Waiting for messages...')
 	while True:
-		new_data = json.loads(download_latest_msgs(max_msgs, '1127396163964738'))
-		new_msgs = merge_messages(data, new_data)
+		new_data = json.loads(download_latest_msgs(max_msgs, group_id))
+		# new_msgs = merge_messages(data, new_data)
+
+		new_msgs = get_messages_since(new_data, newest_time)
 		for x in new_msgs:
 			try:
 				fb_id = x["author"].split(":")[1]
@@ -118,4 +139,7 @@ if __name__ == '__main__':
 			except Exception:
 				print("Error")
 
+		save_msgs(db_msgs, new_msgs)
+
+		newest_time = get_newest_msg(new_data)
 		time.sleep(1)
