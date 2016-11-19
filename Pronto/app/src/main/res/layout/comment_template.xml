@@ -2,16 +2,99 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-
    >
 
-    <TextView
-        android:id="@+id/message"
-        android:layout_width="wrap_content"
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:background="#918e8e"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="start"
-        android:paddingTop="8dp"
-        android:textSize="17dp"
-        android:textStyle="normal" />
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text = "Clive Chan"
+                    android:paddingTop="8dp"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentStart="true"/>
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text = "Today at 3:01 am"
+                    android:paddingTop="8dp"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true" />
+
+            </RelativeLayout>
+
+
+            <TextView
+                android:id="@+id/message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:text = "This is sample text to test the design of this UI element. Two sentences is a suffient estimated length for an imporant facebook message."
+                android:paddingTop="8dp"
+                android:textSize="17dp"
+                android:textStyle="normal" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/numBookmarks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text = "3"
+                    android:paddingTop="8dp"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true" />
+
+                <TextView
+                    android:id="@+id/numLikes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text = "35"
+                    android:paddingTop="8dp"
+                    android:textSize="17dp"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="8dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_toStartOf="@+id/numBookmarks" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+    </FrameLayout>
 
 </FrameLayout>

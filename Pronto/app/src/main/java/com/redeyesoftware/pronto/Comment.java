@@ -50,7 +50,8 @@ public class Comment extends FrameLayout implements View.OnClickListener {
         setOnClickListener(this);
 
         ((TextView)(findViewById(R.id.message))).setText(message);
-
+        ((TextView)(findViewById(R.id.numLikes))).setText("" + likes);
+        ((TextView)(findViewById(R.id.numBookmarks))).setText("" + bookmarks);
         /*
         String eventName = "";
         double longi = 0;

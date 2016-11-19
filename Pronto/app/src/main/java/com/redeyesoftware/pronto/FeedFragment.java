@@ -31,24 +31,22 @@ public class FeedFragment extends Fragment {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_feed, container, false);
 
-        FrameLayout v;
-        FrameLayout frame = new FrameLayout(getActivity());
+        FrameLayout fragmentContent = new FrameLayout(getActivity());
         ScrollView scroll = new ScrollView(getActivity());
         scroll.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         LinearLayout linear = new LinearLayout(getActivity());
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
         for (int i = 0; i < 10; i++) {
-            Comment evt = new Comment(getActivity(), "hi",0,0,0);
-            evt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            linear.addView(evt);
+            Comment cmt = new Comment(getActivity(), "Message #"+i,0,5,10);
+            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            linear.addView(cmt);
         }
         scroll.addView(linear);
-        frame.addView(scroll);
-        v = frame;
+        fragmentContent.addView(scroll);
 
 
-        return v;
+        return fragmentContent;
     }
 
 
