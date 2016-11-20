@@ -1,17 +1,28 @@
 package com.redeyesoftware.pronto;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
  * Created by George on 19/11/2016.
  */
 
-public class Comment extends FrameLayout implements View.OnClickListener {
+public class Comment extends FrameLayout implements View.OnTouchListener {
+
+    float historicX = Float.NaN, historicY = Float.NaN;
+    static final int DELTA = 50;
+
 
     String message = "";
     String author;
@@ -49,7 +60,7 @@ public class Comment extends FrameLayout implements View.OnClickListener {
     private void init() {
         inflate(getContext(), R.layout.comment_template, this);
 
-        setOnClickListener(this);
+        setOnTouchListener(this);
 
         ((TextView)(findViewById(R.id.message))).setText(message);
         ((TextView)(findViewById(R.id.author))).setText(author);
@@ -100,10 +111,70 @@ public class Comment extends FrameLayout implements View.OnClickListener {
 
     }
 
-    @Override
+   /* @Override
     public void onClick(View view) {
         Intent intent = new Intent(parentActivity, MainPage.class);
        // intent.putExtra("index", index);
         parentActivity.startActivity(intent);
+    }*/
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        //Log.d("Debug", "" + event.getAction());
+       // Log.d("Debug", "" + MotionEvent.ACTION_UP);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                historicX = event.getX();
+                historicY = event.getY();
+                return true;//was oringally returning false here and in default and only ACTION_DOWN were regestering
+                 //You need to return true to get the following events after a down.
+
+            case MotionEvent.ACTION_CANCEL://this was originally ACTION_UP (1), but through debugging
+                //I saw that event.getAction was never 1. Instead, gestured ended with (3), ACTION_CANCEL
+
+                //Log.d("Debug", "up"));
+                if (event.getX() - historicX < -DELTA) {
+                    return true;
+                } else if (event.getX() - historicX > DELTA) {
+
+                    //Start animation with 500 miliseconds of time
+                    this.startAnimation(outToRightAnimation(500));
+                    //after 500 miliseconds remove from linear layout
+                    //ie the animation takes 500 and after, it is deleted.
+                    // if delete immediately, the views below rise before the view being deleting is gone and they overlap
+
+                    new java.util.Timer().schedule(
+                            new java.util.TimerTask() {
+                                @Override
+                                public void run() {
+                                    //FeedFragment.linear.removeView(FeedFragment.linear.getChildAt(0));
+
+                                    //the above resulted in an error because Only the original thread that created a view hierarchy can touch its views.
+                                    FeedFragment.me.removeCommentFromFeed();
+                                    //Log.d("Debug", "removed");
+                               }
+                            },
+                            500
+                    );
+                    return true;
+
+                }
+
+                return true;
+            default:
+                return true;
+
+        }
+    }
+
+    private Animation outToRightAnimation(int duration) {
+        Animation outtoRight = new TranslateAnimation(
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, +1.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f);
+        outtoRight.setDuration(duration);
+        outtoRight.setInterpolator(new AccelerateInterpolator());
+        return outtoRight;
     }
 }

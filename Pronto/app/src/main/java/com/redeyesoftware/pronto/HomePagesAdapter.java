@@ -40,7 +40,7 @@ public class HomePagesAdapter extends FragmentPagerAdapter {
             case 0:
                 return "Feed";
             case 1:
-                return "Channels";
+                return "Chat";
             case 2:
                 return "Bookmarks";
             default:
