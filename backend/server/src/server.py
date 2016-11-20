@@ -24,12 +24,28 @@ def download_text(url):
 
     return r.text
 
+def verify_token(token, api_token):
+    graph_url = "https://graph.facebook.com/me/"
+    r = requests.get("{}".format(graph_url), params={"access_token": token})
+    json_data = json.loads(r.text)
+
+    fb_id = json_data.get('id', None)
+    return fb_id is not None
+
 ######################################################################
 # VIEWS
 ######################################################################
 @application.route("/")
 def hello():
     return "<h1 style='color:blue'>Hello There!</h1>"
+
+@application.route('/login', methods=['POST'])
+def login():
+    access_token = request.form.get('access_token', None)
+    if access_token is None:
+        return 'Error'
+
+    return str(verify_token(access_token, fb_key))
 
 @application.route("/inbox/search/", methods=['GET'])
 def search_msgs():
