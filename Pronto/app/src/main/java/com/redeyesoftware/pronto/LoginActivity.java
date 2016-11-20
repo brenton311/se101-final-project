@@ -24,15 +24,12 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(this);
-
         if (isLoggedIn()) {
             Intent intent = new Intent(LoginActivity.this, MainPage.class);
 
             //deletes all prev activities from the back stack (otherwise pressing back brings login page)
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            
+
             LoginActivity.this.startActivity(intent);
             return;
         }
@@ -63,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public boolean isLoggedIn() {
+    public static boolean isLoggedIn() {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         return accessToken != null;
     }
