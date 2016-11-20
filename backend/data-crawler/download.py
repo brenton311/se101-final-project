@@ -174,11 +174,6 @@ if __name__ == '__main__':
 	db_msgs = couch['messages']
 
 	max_msgs = 30
-	# base_data = download_latest_msgs(max_msgs, group_id)
-	# base_msgs = extract_msgs(base_data)
-
-	# save_msgs(db_msgs, get_messages_since(base_msgs, 0))
-	# newest_time = get_newest_msg(base_msgs)
 	newest_time = find_newest_msg(db_msgs)
 
 	print('Starting...')
