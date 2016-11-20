@@ -26,8 +26,10 @@ import android.widget.ScrollView;
 
 public class FeedFragment extends Fragment {
 
-    private static LinearLayout linear;
-public static FeedFragment me;
+    private static FeedFragment me;
+
+    private LinearLayout linear;
+
     public FeedFragment() {
         // Required empty public constructor
     }
@@ -64,12 +66,15 @@ public static FeedFragment me;
         return fragmentContent;
     }
 
-    public void removeCommentFromFeed() {
-        getActivity().runOnUiThread(new Runnable() {
+    public static void removeCommentFromFeed(final int index) {
+        if (index<0||index >= me.linear.getChildCount()) {
+            Log.d("ERROR", "Tried to delete element at invalid index");
+            return;
+        }
+        me.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-             linear.removeView(linear.getChildAt(0));
-
+             me.linear.removeView(me.linear.getChildAt(index));//index needed to be final to be used by this inner class
             }
         });
     }
