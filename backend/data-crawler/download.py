@@ -119,6 +119,7 @@ def compress_msg(msg):
 	# Custom data
 	zip_msg['score'] = 0.0
 	zip_msg['likes'] = 0
+	zip_msg['unlikes'] = 0
 	zip_msg['dislikes'] = 0
 	zip_msg['bookmarks'] = 0
 
@@ -155,6 +156,7 @@ def find_newest_msg(db):
 	base_newest = 0
 	for msg_doc in db:
 		msg = db[msg_doc]
+		# print(msg)
 		timestamp = int(msg['timestamp'])
 		if timestamp > base_newest:
 			base_newest = timestamp
@@ -183,6 +185,8 @@ if __name__ == '__main__':
 		while oldest_updated > newest_time:
 			print('Getting new messages...')
 			new_data = download_latest_msgs(max_msgs, group_id)
+			# print(new_data)
+
 			new_msgs = extract_msgs(new_data)
 			new_msgs.extend(get_messages_since(new_msgs, newest_time))
 
