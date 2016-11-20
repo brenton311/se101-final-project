@@ -23,7 +23,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
     float historicX = Float.NaN, historicY = Float.NaN;
     static final int DELTA = 50;
 
-
+    String messageID = "";
     String message = "";
     String author;
     String date;
@@ -46,15 +46,44 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         init();
     }
 
-    public Comment(Context context, String message, String author, String date, int likes, int bookmarks) {
+    public Comment(Context context, String messageID, String message, String author, String date, int likes, int bookmarks) {
         super(context);
         parentActivity = context;
+        this.messageID = messageID;
         this.message = message;
         this.author = author;
         this.date = date;
         this.likes = likes;
         this.bookmarks = bookmarks;
         init();
+    }
+
+    private void remove() {
+
+        //Todo: send messageID to server what was deleted
+
+        //Start animation with 500 miliseconds of time
+        this.startAnimation(outToRightAnimation(500));
+        //after 500 miliseconds remove from linear layout
+        //ie the animation takes 500 and after, it is deleted.
+        // if delete immediately, the views below rise before the view being deleting is gone and they overlap
+
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        //FeedFragment.linear.removeView(FeedFragment.linear.getChildAt(0));
+                        //the above resulted in an error because Only the original thread that created a view hierarchy can touch its views.
+                        FeedFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
+                        //simply running from Frag Class didnt fix this; likely because it doesnt change the thread
+                        //the real reason why this works is I used Activity.runInUIThread to get the removal to run in original thread
+                        //couldnt have used it here, inside comment, because it runs from an Activity (which the fragment can reference with getActivity() )
+
+                        //Log.d("Debug", "removed");
+                    }
+                },
+                500
+        );
     }
 
     private void init() {
@@ -136,29 +165,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 if (event.getX() - historicX < -DELTA) {
                     return true;
                 } else if (event.getX() - historicX > DELTA) {
-
-                    //Start animation with 500 miliseconds of time
-                    this.startAnimation(outToRightAnimation(500));
-                    //after 500 miliseconds remove from linear layout
-                    //ie the animation takes 500 and after, it is deleted.
-                    // if delete immediately, the views below rise before the view being deleting is gone and they overlap
-
-                    new java.util.Timer().schedule(
-                            new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    //FeedFragment.linear.removeView(FeedFragment.linear.getChildAt(0));
-                                    //the above resulted in an error because Only the original thread that created a view hierarchy can touch its views.
-                                    FeedFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
-                                    //simply running from Frag Class didnt fix this; likely because it doesnt change the thread
-                                    //the real reason why this works is I used Activity.runInUIThread to get the removal to run in original thread
-                                    //couldnt have used it here, inside comment, because it runs from an Activity (which the fragment can reference with getActivity() )
-
-                                    //Log.d("Debug", "removed");
-                               }
-                            },
-                            500
-                    );
+                    remove();
                     return true;
 
                 }
