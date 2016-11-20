@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import requests
 import couchdb
 import json
@@ -31,42 +31,32 @@ def download_text(url):
 def hello():
     return "<h1 style='color:blue'>Hello There!</h1>"
 
-@application.route("/inbox/", methods=['GET'])
+@application.route("/inbox/main/", methods=['GET'])
 def get_msgs():
-    # Arguments:
-    #   group_id
-    #   user_token
-
     try:
+        # TODO: add authentication check
+
         group_id = request.args.get('group_id')
         access_token = request.args.get('access_token', None)
+        max_messages = int(request.args.get('max_messages', 0))
+        start_msg = request.args.get('start', None)
 
+        # Limit the number of returned messages per queue
+        max_messages = min(max_messages, 30)
         db = couch['messages']
 
-
-        group_msgs = ''
-        view_url = 'http://138.197.131.3:5984/messages/_design/testView/_view/getGroupMsgs'
-        view_json = json.loads(download_text(view_url))
-        author_table = {}
-
-
-        for row in view_json['rows']:
-            if row['key'] == group_id:
-                # group_msgs += 
-                # author_id = db[row['id']]['author_id']
-                author_id = row['value']['author']
-                if author_id not in author_table:
-                    author_table[author_id] = get_user_name(author_id, fb_key)
-                new_msg = '[{}]: {}<br>'.format(author_table[author_id], row['value']['text'])
-                
-                group_msgs += new_msg
-
-        return str(group_msgs)
+        # If no starting message is provided, start with the newest
+        gen = None
+        if start_msg is not None:
+            gen = db.iterview('testView/getGroupMsgs', max_messages, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+        else:
+            gen = db.iterview('testView/getGroupMsgs', max_messages, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+        msgs = [m.value for m in gen]
+    
+        return jsonify(msgs)
 
     except Exception as e:
         raise e
-        # return 'Error: {}'.format(e)
-
 
 if __name__ == "__main__":
     application.debug = True
