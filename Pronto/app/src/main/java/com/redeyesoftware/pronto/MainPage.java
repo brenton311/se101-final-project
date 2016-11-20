@@ -2,9 +2,11 @@ package com.redeyesoftware.pronto;
 
 import android.content.Intent;
 import android.support.design.widget.TabLayout;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,6 +59,43 @@ public class MainPage extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.toolbar_main, menu);
+
+        // Get the MenuItem for the action item
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        //when the user clicks an action view's icon, the view's UI fills the toolbar
+        //If you need to configure the action, do so in your activity's onCreateOptionsMenu() callback by calling the static getActionView()
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String q) {
+                //Todo: doSearchForQuery(q);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //doSearchForQuery(newText);
+                return true;
+            }
+        });
+
+
+        // Assign the listener to that action item if you want to do something when the action is expanded or collapsed
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                // Do something when action item collapses
+                return true;  // Return true to collapse action view
+            }
+
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                // Do something when expanded
+                return true;  // Return true to expand action view
+            }
+        });
+
         return true;
     }
 
