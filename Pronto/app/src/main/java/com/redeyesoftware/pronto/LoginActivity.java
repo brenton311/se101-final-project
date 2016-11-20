@@ -44,6 +44,8 @@ public class LoginActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.e("Login Success", loginResult.getAccessToken().getToken());
                 Intent intent = new Intent(LoginActivity.this, MainPage.class);
+                //deletes all prev activities from the back stack (otherwise pressing back brings login page)
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 LoginActivity.this.startActivity(intent);
             }
 

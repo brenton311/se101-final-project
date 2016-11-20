@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/search"
+        android:title="Search"
+        app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_tiva_mode"
+        android:title="Tiva Mode"
+        app:showAsAction="never"/>
+
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_settings"
+        android:title="Settings"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_logout"
+        android:title="Log Out"
+        app:showAsAction="never"/>
+
+</menu>
