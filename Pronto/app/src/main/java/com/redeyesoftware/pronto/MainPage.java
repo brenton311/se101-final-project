@@ -1,5 +1,8 @@
 package com.redeyesoftware.pronto;
 
+import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.MenuItemCompat;
@@ -66,6 +69,10 @@ public class MainPage extends AppCompatActivity {
         //If you need to configure the action, do so in your activity's onCreateOptionsMenu() callback by calling the static getActionView()
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(getApplicationContext(), SearchResultsActivity.class)));
+        searchView.setSubmitButtonEnabled(true);
+        /*
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String q) {
@@ -94,7 +101,7 @@ public class MainPage extends AppCompatActivity {
                 // Do something when expanded
                 return true;  // Return true to expand action view
             }
-        });
+        });*/
 
         return true;
     }

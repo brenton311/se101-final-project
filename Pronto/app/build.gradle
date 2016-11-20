@@ -26,6 +26,7 @@ dependencies {
     })
 
     compile 'com.facebook.android:facebook-android-sdk:[4,5)' //added this for facebook api
+    compile 'com.android.volley:volley:1.0.0'
 
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
