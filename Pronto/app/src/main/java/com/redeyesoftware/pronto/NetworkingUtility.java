@@ -36,10 +36,15 @@ public class NetworkingUtility {
         queue = Volley.newRequestQueue(parentActivity);
     }
 
-    public static void callMethodOn(String key) {
-        switch 
+    private static void callMethodOnFinished(String key) {
+        switch (key) {
+            case "fillFeed":
+                FeedFragment.addCommentsToFeed();
+                return;
+        }
     }
-    public static void getComments(final String urlEnd, final int max_messages, final String group_id, final String[] tags ) {
+
+    public static void getComments(final String urlEnd, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
         comments = new String[max_messages][tags.length];//if not rewriiten, will send back empty array
         //Todo: consider when get less than max_messages
         String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id;
@@ -61,9 +66,8 @@ public class NetworkingUtility {
                                 for (int j=0; j<tags.length;j++) {
                                     comments[i][j] =  comment.getString(tags[j]);
                                 }
-
                             }
-                            FeedFragment.addCommentsToFeed();
+                            callMethodOnFinished(methodKey);
 
                         } catch (Exception e) {
                             e.printStackTrace();

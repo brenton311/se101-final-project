@@ -49,7 +49,7 @@ public class FeedFragment extends Fragment {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_feed, container, false);
 
-        NetworkingUtility.getComments("/inbox/main/", 20,"mid.1479427826988:c661492721",new String[] {
+        NetworkingUtility.getComments("/inbox/main/", 30,"mid.1479427826988:c661492721","fillFeed",new String[] {
                 "author_id", "msg_id", "text", "timestamp"
         });
 
@@ -78,7 +78,9 @@ public class FeedFragment extends Fragment {
 
     public static void addCommentsToFeed() {
         for (int i = 0; i < NetworkingUtility.comments.length; i++) {
-            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], NetworkingUtility.comments[i][3],0,0);
+            //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
+            String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
+            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time,0,0);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }

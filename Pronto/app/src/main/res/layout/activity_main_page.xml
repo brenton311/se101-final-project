@@ -9,16 +9,15 @@
     android:orientation="vertical"
     tools:context="com.redeyesoftware.pronto.MainPage">
 
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:theme="@style/ToolBarStyle"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-
 
     </android.support.v7.widget.Toolbar>
     <!--
@@ -62,7 +61,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            app:tabIndicatorColor="#000000"
+            android:background="@color/colorPrimary"
+            app:theme="@style/ToolBarStyle"
+            app:tabIndicatorColor="@color/colorAccent"
             app:tabPaddingBottom="0dp"
             app:tabPaddingTop="0dp" />
 
