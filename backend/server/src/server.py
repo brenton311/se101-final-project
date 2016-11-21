@@ -50,7 +50,7 @@ def login():
 
     fb_id = verify_token(access_token, fb_key)
     if fb_id is None:
-        repsonse['status'] = 'error'
+        response['status'] = 'error'
         return jsonify(response)
 
     db = couch['users']
