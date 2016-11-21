@@ -46,15 +46,19 @@ def login():
     if access_token is None:
         return 'Error'
 
+    response = {'status': 'ok'}    
+
     fb_id = verify_token(access_token, fb_key)
     if fb_id is None:
-        return 'Error'
+        repsonse['status'] = 'error'
+        return jsonify(response)
 
-
+    db = couch['users']
+    groups_search = db.iterview('userUtil/usersGroups', 20, startkey=fb_id, endkey=fb_id)
+    groups = [g.value for g in groups_search]
+    response['groups'] = groups
     
-    return 'Welcome {}!'.format(get_user_name('me/', access_token))
-        
-    return str(verify_token(access_token, fb_key))
+    return jsonify(response)
 
 @application.route("/inbox/search/", methods=['GET'])
 def search_msgs():
