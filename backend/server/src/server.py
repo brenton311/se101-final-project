@@ -13,7 +13,7 @@ fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 def get_user_name(user_id, token):
     graph_url = "https://graph.facebook.com/"
     r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
-    print(r.text)
+    # print(r.text)
     json_data = json.loads(r.text)
 
     return json_data.get('name', 'Name not found!')
@@ -41,12 +41,37 @@ def get_user_groups(user_id):
     return groups
 
 def id_to_name(msgs):
-    lookup = {}
-    for m in msgs:
-        if m['author_id'] not in lookup:
-            lookup['author_id'] = get_user_name(m['author_id'], fb_key)
+    # db = couch['users']
+    # gen = db.iterview('userUtil/getName', 20)
+    # lookup = {row.key: row.value for row in gen}
+    # lookup = [(u.key, u.value) for u in gen]
 
-        m['author_id'] = lookup['author_id']
+    # print(lookup)
+    users = []
+    for m in msgs:
+        if m['author_id'] in users:
+            users.append(m['author_id'])
+        
+    # Get all users info
+    graph_url = "https://graph.facebook.com/?ids="
+    for msg in msgs:
+        graph_url += msg['author_id'] + ','
+
+    graph_url = graph_url[:-1]
+    graph_url += '&access_token=' + fb_key
+
+    user_data = json.loads(download_text(graph_url))
+    for msg in msgs:
+        msg['author_id'] = user_data[msg['author_id']]['name']
+
+        # print(m)
+        # print(m['author_id'])
+
+        # m['author_id'] = lookup.get(m.get('author_id'), 'Name not found!')
+        # print(m['author_id'])
+        
+        # m['author_id'] = lookup[m['author_id']]
+        
 
     return msgs
 

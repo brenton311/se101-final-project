@@ -158,7 +158,7 @@ def find_newest_msg(db):
 	for msg_doc in db:
 		msg = db[msg_doc]
 		# print(msg)
-		timestamp = int(msg['timestamp'])
+		timestamp = int(msg.get('timestamp', 0))
 		if timestamp > base_newest:
 			base_newest = timestamp
 
