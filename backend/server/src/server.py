@@ -25,6 +25,7 @@ def download_text(url):
 
     return r.text
 
+# TODO: remove api_token field
 def verify_token(token, api_token):
     graph_url = "https://graph.facebook.com/me/"
     r = requests.get("{}".format(graph_url), params={"access_token": token})
@@ -102,6 +103,13 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
+    # Check if the user is in the group
+    if group_id not in get_user_groups(fb_id):
+        response['status'] = 'error'
+        response['error-msg'] = 'You are not in the group!'
+        return jsonify(response)
+    
+
     db = couch['messages']
     msg = db[msg_id]
 
@@ -146,6 +154,13 @@ def dislike_msg():
         response['status'] = 'error'
         response['error-msg'] = 'Invalid token!'
         return jsonify(response)
+
+    # Check if the user is in the group
+    if fb_id not in get_user_groups(fb_id):
+        response['status'] = 'error'
+        response['error-msg'] = 'You are not in the group!'
+        return jsonify(response)
+    
 
     db = couch['messages']
     msg = db[msg_id]
@@ -237,6 +252,21 @@ def search_msgs():
         # keyword = json.loads(request.args.get('keyword', '{[]}'))
         # print(keywords)
 
+        response = {'status': 'ok'}    
+
+        # Check if token is valid
+        fb_id = verify_token(access_token, fb_key)
+        if fb_id is None:
+            response['status'] = 'error'
+            response['error-msg'] = 'Invalid FB ID!'
+            return jsonify(response)
+
+        # Check if the user is in the group
+        if group_id not in get_user_groups(fb_id):
+            response['status'] = 'error'
+            response['error-msg'] = 'You are not in the group!'
+            return jsonify(response)
+
         # Limit the number of returned messages per queue
         max_messages = min(max_messages, 30)
         db = couch['messages']
@@ -284,6 +314,24 @@ def get_msgs():
         # Limit the number of returned messages per queue
         max_messages = min(max_messages, 30)
         db = couch['messages']
+
+        response = {'status': 'ok'}    
+
+        # Check if token is valid
+        fb_id = verify_token(access_token, fb_key)
+        if fb_id is None:
+            response['status'] = 'error'
+            response['error-msg'] = 'Invalid FB ID!'
+            return jsonify(response)
+
+        # Check if the user is in the group
+        groups = get_user_groups(fb_id)
+        print(groups)
+
+        if group_id not in get_user_groups(fb_id)[0]:
+            response['status'] = 'error'
+            response['error-msg'] = 'You are not in the group!'
+            return jsonify(response)
 
         # If no starting message is provided, start with the newest
         gen = None
