@@ -28,6 +28,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
     String author;
     String date;
     int likes = 0;
+    boolean iLiked = false;
     int bookmarks = 0;
     Context parentActivity;
 
@@ -60,8 +61,9 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
     private void remove() {
 
+        //Log.d("Debug", "deleted");
         //Todo: send messageID to server what was deleted
-
+        //NetworkingUtility.get("/inbox/main/", new String[] {"max_messages","group_id"}, new String[] {"20","mid.1479427826988:c661492721"});
         //Start animation with 500 miliseconds of time
         this.startAnimation(outToRightAnimation(500));
         //after 500 miliseconds remove from linear layout

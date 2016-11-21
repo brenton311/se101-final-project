@@ -23,6 +23,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import static bolts.Task.delay;
+
 
 public class FeedFragment extends Fragment {
 
@@ -47,23 +49,39 @@ public class FeedFragment extends Fragment {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_feed, container, false);
 
+        NetworkingUtility.getComments("/inbox/main/", 20,"mid.1479427826988:c661492721",new String[] {
+                "author_id", "msg_id", "text", "timestamp"
+        });
+
+
+        //NetworkingUtility.get("/inbox/main/", new String[] {"max_messages","group_id"}, new String[] {"20","mid.1479427826988:c661492721"});
+
+        /*for (int i=0;i<comments.length;i++) {
+            for (int j=0; j<4;j++) {
+                Log.d("output",comments[i][j]);
+            }
+        }*/
+
         FrameLayout fragmentContent = new FrameLayout(getActivity());
         ScrollView scroll = new ScrollView(getActivity());
         scroll.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         linear = new LinearLayout(getActivity());
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
-        for (int i = 0; i < 10; i++) {
-            Comment cmt = new Comment(getActivity(), "", "Message #"+i, "George Eisa", "Today at 8:32 am",5,10);
-            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            linear.addView(cmt);
-        }
         scroll.addView(linear);
         fragmentContent.addView(scroll);
 
        // setUpSwipeToDelete();
 
         return fragmentContent;
+    }
+
+    public static void addCommentsToFeed() {
+        for (int i = 0; i < NetworkingUtility.comments.length; i++) {
+            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], NetworkingUtility.comments[i][3],0,0);
+            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            me.linear.addView(cmt);
+        }
     }
 
     public static void removeCommentFromFeed(final int index) {
