@@ -11,11 +11,12 @@ fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 # Utilities
 ######################################################################
 def get_user_name(user_id, token):
-	graph_url = "https://graph.facebook.com/"
-	r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
-	json_data = json.loads(r.text)
+    graph_url = "https://graph.facebook.com/"
+    r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
+    print(r.text)
+    json_data = json.loads(r.text)
 
-	return json_data.get('name', 'Name not found!')
+    return json_data.get('name', 'Name not found!')
 
 def download_text(url):
     r = requests.get(url)
@@ -30,7 +31,7 @@ def verify_token(token, api_token):
     json_data = json.loads(r.text)
 
     fb_id = json_data.get('id', None)
-    return fb_id is not None
+    return fb_id
 
 ######################################################################
 # VIEWS
@@ -45,6 +46,14 @@ def login():
     if access_token is None:
         return 'Error'
 
+    fb_id = verify_token(access_token, fb_key)
+    if fb_id is None:
+        return 'Error'
+
+
+    
+    return 'Welcome {}!'.format(get_user_name('me/', access_token))
+        
     return str(verify_token(access_token, fb_key))
 
 @application.route("/inbox/search/", methods=['GET'])
@@ -68,9 +77,9 @@ def search_msgs():
         # If no starting message is provided, start with the newest
         gen = None
         if start_msg is not None:
-            gen = db.iterview('chats/getMsgsRanks', max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+            gen = db.iterview('chats/getMsgsRanks', 20, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
-            gen = db.iterview('chats/getMsgsRanks', max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')        
+            gen = db.iterview('chats/getMsgsRanks', 20, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')        
         msgs = [m.value for m in gen]
         # msgs = json.loads(msgs)
 
@@ -92,7 +101,8 @@ def search_msgs():
         return jsonify(msgs)
 
     except Exception as e:
-        raise e
+        return 'Invalid Parameters'
+        # raise e
 
 @application.route("/inbox/main/", methods=['GET'])
 def get_msgs():
@@ -110,9 +120,9 @@ def get_msgs():
         # If no starting message is provided, start with the newest
         gen = None
         if start_msg is not None:
-            gen = db.iterview('chats/getGroupMsgs', max_messages, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+            gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
-            gen = db.iterview('chats/getGroupMsgs', max_messages, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+            gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         msgs = [m.value for m in gen]
     
         return jsonify(msgs)
