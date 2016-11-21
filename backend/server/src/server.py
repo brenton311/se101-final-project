@@ -29,6 +29,7 @@ def verify_token(token, api_token):
     graph_url = "https://graph.facebook.com/me/"
     r = requests.get("{}".format(graph_url), params={"access_token": token})
     json_data = json.loads(r.text)
+    print(json_data)
 
     fb_id = json_data.get('id', None)
     return fb_id
@@ -41,12 +42,6 @@ def get_user_groups(user_id):
     return groups
 
 def id_to_name(msgs):
-    # db = couch['users']
-    # gen = db.iterview('userUtil/getName', 20)
-    # lookup = {row.key: row.value for row in gen}
-    # lookup = [(u.key, u.value) for u in gen]
-
-    # print(lookup)
     users = []
     for m in msgs:
         if m['author_id'] in users:
@@ -63,15 +58,6 @@ def id_to_name(msgs):
     user_data = json.loads(download_text(graph_url))
     for msg in msgs:
         msg['author_id'] = user_data[msg['author_id']]['name']
-
-        # print(m)
-        # print(m['author_id'])
-
-        # m['author_id'] = lookup.get(m.get('author_id'), 'Name not found!')
-        # print(m['author_id'])
-        
-        # m['author_id'] = lookup[m['author_id']]
-        
 
     return msgs
 
@@ -101,30 +87,32 @@ def login():
 
 @application.route('/msg/like/', methods=['POST'])
 def like_msg():
+    response = {'status': 'ok'}    
+
     msg_id = request.form.get('msg_id', '')
     access_token = request.form.get('access_token', None)
+    if access_token is None:
+        response['status'] = 'error'
+        response['error-msg'] = 'Invalid token!'
     # group_id = request.args.get('group_id', '')
     
-    response = {'status': 'ok'}    
     fb_id = verify_token(access_token, fb_key)
     if fb_id is None:
         response['status'] = 'error'
-        response['error-msg'] = 'Invalid token!'
+        response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
     db = couch['messages']
     msg = db[msg_id]
 
-    # print(msg['group_id'], get_user_groups(fb_id))
-
     # Make sure the user is in the group where the message 
     # is published
     if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
-        # Old messages have like as an integer
-        if msg['likes'] is not list:
-            msg['likes'] = []
 
-        print(msg)
+        # Old messages have like as an integer
+        if type(msg['likes']) is not list:
+            print('Reset likes')
+            msg['likes'] = []
 
         # Unlike if already liked
         if fb_id in msg['likes']:
@@ -168,7 +156,7 @@ def dislike_msg():
     # is published
     if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
         # Old messages have like as an integer
-        if msg['dislikes'] is not list:
+        if type(msg['dislikes']) is not list:
             msg['dislikes'] = []
 
         # Dislike should not be called more than once
