@@ -60,6 +60,18 @@ def login():
     
     return jsonify(response)
 
+@application.route('/msg/like/', methods=['POST'])
+def like_msg():
+    pass
+
+@application.route('/msg/dislikes/', methods=['POST'])
+def dislike_msg():
+    pass
+
+@application.route('/msg/bookmark/', metods=['POST'])
+def bookmark_msg():
+    pass
+
 @application.route("/inbox/search/", methods=['GET'])
 def search_msgs():
     try:
@@ -85,6 +97,7 @@ def search_msgs():
         else:
             gen = db.iterview('chats/getMsgsRanks', 20, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')        
         msgs = [m.value for m in gen]
+        # for m  in msgs:
         # msgs = json.loads(msgs)
 
         # Rank the relevance of messages based on the frequency of keywords

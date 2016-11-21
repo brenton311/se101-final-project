@@ -101,7 +101,7 @@ def find_oldest_msg(msgs):
 """
 	Extracts the useful fields from the msg dict
 """
-def compress_msg(msg):
+def compress_msg(msg, group_id):
 	zip_msg = {}
 
 	# Facebook provided data
@@ -113,7 +113,8 @@ def compress_msg(msg):
 
 	zip_msg['timestamp'] = msg.get('timestamp', '')
 	zip_msg['attachments'] = msg.get('attachments', '')
-	zip_msg['group_id'] = msg.get('thread_id', '')
+	# zip_msg['group_id'] = msg.get('thread_id', '')
+	zip_msg['group_id'] = group_id
 	zip_msg['text'] = msg.get('body', '')
 
 	# Custom data
@@ -129,12 +130,12 @@ def compress_msg(msg):
 	Takes in a FB json of messages, compress them, returns
 	messages in a list
 """
-def extract_msgs(json_text):
+def extract_msgs(json_text, group_id):
 	msgs_json = json.loads(json_text)
 	msgs = []
 
 	for msg in msgs_json['payload']['actions']:
-		msgs.append(compress_msg(msg))
+		msgs.append(compress_msg(msg, group_id))
 
 	return msgs
 
@@ -187,7 +188,7 @@ if __name__ == '__main__':
 			new_data = download_latest_msgs(max_msgs, group_id)
 			# print(new_data)
 
-			new_msgs = extract_msgs(new_data)
+			new_msgs = extract_msgs(new_data, group_id)
 			new_msgs.extend(get_messages_since(new_msgs, newest_time))
 
 			if len(new_msgs) > 0:
