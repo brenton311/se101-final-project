@@ -33,6 +33,13 @@ def verify_token(token, api_token):
     fb_id = json_data.get('id', None)
     return fb_id
 
+def get_user_groups(user_id):
+    db = couch['users']
+    groups_search = db.iterview('userUtil/usersGroups', 20, startkey=user_id, endkey=user_id)
+    groups = [g.value for g in groups_search]
+
+    return groups
+
 ######################################################################
 # VIEWS
 ######################################################################
@@ -40,7 +47,7 @@ def verify_token(token, api_token):
 def hello():
     return "<h1 style='color:blue'>Hello There!</h1>"
 
-@application.route('/login', methods=['POST'])
+@application.route('/login/', methods=['POST'])
 def login():
     access_token = request.form.get('access_token', None)
     if access_token is None:
@@ -53,22 +60,56 @@ def login():
         response['status'] = 'error'
         return jsonify(response)
 
-    db = couch['users']
-    groups_search = db.iterview('userUtil/usersGroups', 20, startkey=fb_id, endkey=fb_id)
-    groups = [g.value for g in groups_search]
-    response['groups'] = groups
+    response['groups'] = get_user_groups(fb_id)
     
     return jsonify(response)
 
 @application.route('/msg/like/', methods=['POST'])
 def like_msg():
-    pass
+    msg_id = request.form.get('msg_id', '')
+    access_token = request.form.get('access_token', None)
+    # group_id = request.args.get('group_id', '')
+    
+    response = {'status': 'ok'}    
+    fb_id = verify_token(access_token, fb_key)
+    if fb_id is None:
+        response['status'] = 'error'
+        response['error-msg'] = 'Invalid token!'
+        return jsonify(response)
+
+    db = couch['messages']
+    msg = db[msg_id]
+
+    print(msg['group_id'], get_user_groups(fb_id))
+
+    # Make sure the user is in the group where the message 
+    # is published
+    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+        if fb_id in msg['likes']:
+            response['status'] = 'error'
+            response['error-msg'] = 'Already Liked!'
+            return jsonify(response)
+
+
+        # Old messages have like as an integer
+        if msg['likes'] is not list:
+            msg['likes'] = []
+        
+        # Add the user to the likes list
+        msg['likes'].append(fb_id)
+        db.save(msg)
+
+        return jsonify(response)
+    else:
+        response['status'] = 'error'
+        response['error-msg'] = 'Not in group!'
+        return jsonify(response)
 
 @application.route('/msg/dislikes/', methods=['POST'])
 def dislike_msg():
     pass
 
-@application.route('/msg/bookmark/', metods=['POST'])
+@application.route('/msg/bookmark/', methods=['POST'])
 def bookmark_msg():
     pass
 
