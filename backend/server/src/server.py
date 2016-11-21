@@ -40,6 +40,16 @@ def get_user_groups(user_id):
 
     return groups
 
+def id_to_name(msgs):
+    lookup = {}
+    for m in msgs:
+        if m['author_id'] not in lookup:
+            lookup['author_id'] = get_user_name(m['author_id'], fb_key)
+
+        m['author_id'] = lookup['author_id']
+
+    return msgs
+
 ######################################################################
 # VIEWS
 ######################################################################
@@ -80,24 +90,29 @@ def like_msg():
     db = couch['messages']
     msg = db[msg_id]
 
-    print(msg['group_id'], get_user_groups(fb_id))
+    # print(msg['group_id'], get_user_groups(fb_id))
 
     # Make sure the user is in the group where the message 
     # is published
     if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+        # Old messages have like as an integer
+        if msg['likes'] is not list:
+            msg['likes'] = []
+
+        print(msg)
 
         # Unlike if already liked
         if fb_id in msg['likes']:
             msg['likes'].remove(fb_id)
             db.save(msg)
+
+            response['error-msg'] = 'Unliked!'
             return jsonify(response)
 
-        # Old messages have like as an integer
-        if msg['likes'] is not list:
-            msg['likes'] = []
-        
         # Add the user to the likes list
         msg['likes'].append(fb_id)
+        response['error-msg'] = 'Liked!'
+        
         db.save(msg)
 
         return jsonify(response)
@@ -108,7 +123,45 @@ def like_msg():
 
 @application.route('/msg/dislikes/', methods=['POST'])
 def dislike_msg():
-    pass
+    msg_id = request.form.get('msg_id', '')
+    access_token = request.form.get('access_token', None)
+    # group_id = request.args.get('group_id', '')
+    
+    response = {'status': 'ok'}    
+    fb_id = verify_token(access_token, fb_key)
+    if fb_id is None:
+        response['status'] = 'error'
+        response['error-msg'] = 'Invalid token!'
+        return jsonify(response)
+
+    db = couch['messages']
+    msg = db[msg_id]
+
+    # print(msg['group_id'], get_user_groups(fb_id))
+
+    # Make sure the user is in the group where the message 
+    # is published
+    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+        # Old messages have like as an integer
+        if msg['dislikes'] is not list:
+            msg['dislikes'] = []
+
+        # Dislike should not be called more than once
+        if fb_id in msg['dislikes']:
+            response['status'] = 'error'
+            response['error-msg'] = 'Already disliked!'
+
+            return jsonify(response)
+        
+        # Add the user to the likes list
+        msg['dislikes'].append(fb_id)
+        db.save(msg)
+
+        return jsonify(response)
+    else:
+        response['status'] = 'error'
+        response['error-msg'] = 'Not in group!'
+        return jsonify(response)
 
 @application.route('/msg/bookmark/', methods=['POST'])
 def bookmark_msg():
@@ -183,7 +236,8 @@ def get_msgs():
         else:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         msgs = [m.value for m in gen]
-    
+        msgs = id_to_name(msgs)
+
         return jsonify(msgs)
 
     except Exception as e:
