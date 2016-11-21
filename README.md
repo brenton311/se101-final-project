@@ -41,3 +41,10 @@ group chats; and ​ implementing the Naive Bayes text classification algorithm 
 messages. Another challenge will be the Bluetooth communication between a phone and the
 Tiva (e.g. interfacing the Tiva and the Bluetooth module on the hardware level and developing a
 communication protocol).
+
+### Backend Config
+~~~~
+function (doc) {
+  emit(doc._id, {'author_id': doc.author_id, 'timestamp': doc.timestamp, 'text': doc.text});
+}
+~~~~
