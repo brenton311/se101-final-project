@@ -150,8 +150,6 @@ def dislike_msg():
     db = couch['messages']
     msg = db[msg_id]
 
-    # print(msg['group_id'], get_user_groups(fb_id))
-
     # Make sure the user is in the group where the message 
     # is published
     if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
@@ -178,7 +176,52 @@ def dislike_msg():
 
 @application.route('/msg/bookmark/', methods=['POST'])
 def bookmark_msg():
-    pass
+    response = {'status': 'ok'}    
+
+    msg_id = request.form.get('msg_id', '')
+    access_token = request.form.get('access_token', None)
+    if access_token is None:
+        response['status'] = 'error'
+        response['error-msg'] = 'Invalid token!'
+    # group_id = request.args.get('group_id', '')
+    
+    fb_id = verify_token(access_token, fb_key)
+    if fb_id is None:
+        response['status'] = 'error'
+        response['error-msg'] = 'Invalid FB ID!'
+        return jsonify(response)
+
+    db = couch['messages']
+    msg = db[msg_id]
+
+    # Make sure the user is in the group where the message 
+    # is published
+    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+
+        # Old messages have like as an integer
+        if type(msg['bookmarks']) is not list:
+            print('Reset likes')
+            msg['bookmarks'] = []
+
+        # Unlike if already liked
+        if fb_id in msg['bookmarks']:
+            msg['bookmarks'].remove(fb_id)
+            db.save(msg)
+
+            response['error-msg'] = 'Unbookmarked!'
+            return jsonify(response)
+
+        # Add the user to the likes list
+        msg['bookmarks'].append(fb_id)
+        response['bookmarks'] = 'Bookmarked!'
+        
+        db.save(msg)
+
+        return jsonify(response)
+    else:
+        response['status'] = 'error'
+        response['error-msg'] = 'Not in group!'
+        return jsonify(response)
 
 @application.route("/inbox/search/", methods=['GET'])
 def search_msgs():
