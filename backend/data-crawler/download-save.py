@@ -6,5 +6,5 @@ if __name__ == '__main__':
     group_id = sys.argv[1]
     num_messages = sys.argv[2]
     data = download_latest_msgs(num_messages, group_id)
-    msgs = extract_msgs(data)
+    msgs = extract_msgs(data, group_id)
     save_msgs(couch['messages'], msgs)
