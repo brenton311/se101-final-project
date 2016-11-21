@@ -85,11 +85,12 @@ def like_msg():
     # Make sure the user is in the group where the message 
     # is published
     if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
-        if fb_id in msg['likes']:
-            response['status'] = 'error'
-            response['error-msg'] = 'Already Liked!'
-            return jsonify(response)
 
+        # Unlike if already liked
+        if fb_id in msg['likes']:
+            msg['likes'].remove(fb_id)
+            db.save(msg)
+            return jsonify(response)
 
         # Old messages have like as an integer
         if msg['likes'] is not list:
