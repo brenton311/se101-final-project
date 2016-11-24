@@ -1,6 +1,8 @@
 package com.redeyesoftware.pronto;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,10 +41,17 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         //loginButton.setReadPermissions("email");
+        //loginButton.setReadPermissions("read_mailbox");
+
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.e("Login Success", loginResult.getAccessToken().getToken());
+
+                SharedPreferences.Editor editor = getSharedPreferences("PrefsFile", MODE_PRIVATE).edit();
+                editor.putString("accessToken", loginResult.getAccessToken().getToken());
+                editor.commit();
+
                 Intent intent = new Intent(LoginActivity.this, MainPage.class);
                 //deletes all prev activities from the back stack (otherwise pressing back brings login page)
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

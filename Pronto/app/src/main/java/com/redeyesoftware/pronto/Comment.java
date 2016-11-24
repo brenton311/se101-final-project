@@ -3,6 +3,8 @@ package com.redeyesoftware.pronto;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -10,9 +12,24 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.facebook.share.model.ShareLinkContent;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by George on 19/11/2016.
@@ -21,7 +38,7 @@ import android.widget.TextView;
 public class Comment extends FrameLayout implements View.OnTouchListener {
 
     float historicX = Float.NaN, historicY = Float.NaN;
-    static final int DELTA = 50;
+    static final int DELTA = 80;
 
     String messageID = "";
     String message = "";
@@ -47,7 +64,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         init();
     }
 
-    public Comment(Context context, String messageID, String message, String author, String date, int likes, int bookmarks) {
+    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks) {
         super(context);
         parentActivity = context;
         this.messageID = messageID;
@@ -55,6 +72,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         this.author = author;
         this.date = date;
         this.likes = likes;
+        this.iLiked = iLiked;
         this.bookmarks = bookmarks;
         init();
     }
@@ -98,19 +116,68 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         ((TextView)(findViewById(R.id.date))).setText(date);
         ((TextView)(findViewById(R.id.numLikes))).setText("" + likes);
         ((TextView)(findViewById(R.id.numBookmarks))).setText("" + bookmarks);
+
+        ((ImageButton) findViewById(R.id.viewInNewBtn)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+
+        ((ImageButton) findViewById(R.id.likeBtn)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+
+        ((ImageButton) findViewById(R.id.bookmarkBtn)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks);
+                ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
+
+                try {
+                    FileInputStream fileIn = new FileInputStream("SavedProntoBookmarks.txt");
+                    ObjectInputStream in = new ObjectInputStream(fileIn);
+                    bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+                    //Log.i("palval", "dir.exists()");
+                    in.close();
+                    fileIn.close();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                bookmarkList.add(newBookmark);
+
+                try {
+                    FileOutputStream fileOut = new FileOutputStream("SavedProntoBookmarks.txt");
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(bookmarkList);//this is only possible becuase SerializableBookmark implements Serializable
+                    out.close();
+                    fileOut.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+
         /*
+        --Code from Sportigo--
         String eventName = "";
         double longi = 0;
         double lat = 0;
-
         int totalNeeded = 0;
         String desc = "";
         String poster = "";
         String participants = "";
         String eventTime = "";
         eventId = 0;
-
-
         (TextView)(findViewById(R.id.eventName)).setText(eventName);
         (TextView)(findViewById(R.id.time)).setText(""+eventTime);
         (TextView)(findViewById(R.id.desc)).setText(desc);
@@ -121,10 +188,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         p.setProgress(100*( (participants.split(",").length) / (float)(totalNeeded) );
 
 
-
-
-        Code from AI Labs
-
+        --Code from AI Labs--
         RelativeLayout hpdown1  = (RelativeLayout)findViewById(R.id.codefile1);
         Resources res = getResources();
         if (type==0) {
@@ -133,13 +197,10 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
             hpdown1.setBackground((res.getDrawable(R.drawable.gradient2)));
         }
         //request server data
-
         setOnClickListener(this);
-
         ((TextView)(findViewById(R.id.typeTitle))).setText(((type==1)?"TANKS AI # ":"PONG AI # ") + index);
         ((TextView)(findViewById(R.id.dateTitle))).setText(date);
         */
-
     }
 
    /* @Override
@@ -157,12 +218,14 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
             case MotionEvent.ACTION_DOWN:
                 historicX = event.getX();
                 historicY = event.getY();
+                setPressed(true);
                 return true;//was oringally returning false here and in default and only ACTION_DOWN were regestering
                  //You need to return true to get the following events after a down.
 
+            case MotionEvent.ACTION_UP:
+                setPressed(false);
             case MotionEvent.ACTION_CANCEL://this was originally ACTION_UP (1), but through debugging
                 //I saw that event.getAction was never 1. Instead, gestured ended with (3), ACTION_CANCEL
-
                 //Log.d("Debug", "up"));
                 if (event.getX() - historicX < -DELTA) {
                     return true;
@@ -171,7 +234,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                     return true;
 
                 }
-
+                setPressed(false);
                 return true;
             default:
                 return true;
