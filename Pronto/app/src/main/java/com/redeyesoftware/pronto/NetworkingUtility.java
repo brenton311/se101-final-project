@@ -193,14 +193,15 @@ public class NetworkingUtility {
         return response;
     }
 */
-    public static void post(final String key, final String msg) {
+    public static void post(final String urlEnd, final String key, final String msg) {
         // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
+        String newUrl = url + urlEnd;
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, newUrl,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d("Debug", "Response is: " + response.substring(0, 500));
+                        Log.d("Debug", "Response to post is: " + response);
                     }
                 }, new Response.ErrorListener() {
             @Override

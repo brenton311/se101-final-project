@@ -23,18 +23,22 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+
 import static bolts.Task.delay;
 
 
-public class FeedFragment extends Fragment {
+public class BookmarksFragment extends Fragment {
 
-    private final boolean TESTING_MODE  =true;
-
-    private static FeedFragment me;
+    private static BookmarksFragment me;
 
     private LinearLayout linear;
 
-    public FeedFragment() {
+    public BookmarksFragment() {
         // Required empty public constructor
     }
 
@@ -50,18 +54,21 @@ public class FeedFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_feed, container, false);
-        if (!TESTING_MODE) {
-            NetworkingUtility.getComments("/inbox/main/", 30, "1127396163964738", "fillFeed", new String[]{
-                    "author_id", "msg_id", "text", "timestamp"
-            });
 
-            //NetworkingUtility.get("/inbox/main/", new String[] {"max_messages","group_id"}, new String[] {"20","mid.1479427826988:c661492721"});
-
-        /*for (int i=0;i<comments.length;i++) {
-            for (int j=0; j<4;j++) {
-                Log.d("output",comments[i][j]);
-            }
-        }*/
+        ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
+        try {
+            FileInputStream fileIn = new FileInputStream("SavedProntoBookmarks.txt");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+            //Log.i("palval", "dir.exists()");
+            in.close();
+            fileIn.close();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
@@ -70,35 +77,24 @@ public class FeedFragment extends Fragment {
         linear = new LinearLayout(getActivity());
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
-        if (TESTING_MODE) {
-          /*  for (int i=0; i<bookmarkList.size(); i++) {
-                //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
-                Comment cmt = new Comment(
-                        me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
-                        bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks()
-                );
-                cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                me.linear.addView(cmt);
-            }
+        for (int i=0; i<bookmarkList.size(); i++) {
+            //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
+            Comment cmt = new Comment(
+                    me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
+                    bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks()
+            );
+            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            me.linear.addView(cmt);
         }
         scroll.addView(linear);
         fragmentContent.addView(scroll);
 
-       // setUpSwipeToDelete();
+        // setUpSwipeToDelete();
 
         return fragmentContent;
     }
 
-    public static void addCommentsToFeed() {
-        for (int i = 0; i < NetworkingUtility.comments.length; i++) {
-            //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
-            String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
-            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time,0,false,0);
-            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            me.linear.addView(cmt);
-        }
-    }
-
+    //Todo: change to bookmarks
     public static void removeCommentFromFeed(final int index) {
         if (index<0||index >= me.linear.getChildCount()) {
             Log.d("ERROR", "Tried to delete element at invalid index");
@@ -107,7 +103,7 @@ public class FeedFragment extends Fragment {
         me.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-             me.linear.removeView(me.linear.getChildAt(index));//index needed to be final to be used by this inner class
+                me.linear.removeView(me.linear.getChildAt(index));//index needed to be final to be used by this inner class
             }
         });
     }
