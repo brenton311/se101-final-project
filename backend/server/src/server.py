@@ -30,7 +30,7 @@ def verify_token(token, api_token):
     graph_url = "https://graph.facebook.com/me/"
     r = requests.get("{}".format(graph_url), params={"access_token": token})
     json_data = json.loads(r.text)
-    print(json_data)
+    # print(json_data)
 
     fb_id = json_data.get('id', None)
     return fb_id
@@ -71,19 +71,42 @@ def hello():
 
 @application.route('/login/', methods=['POST'])
 def login():
-    access_token = request.form.get('access_token', None)
-    if access_token is None:
-        return 'Error'
-
     response = {'status': 'ok'}    
 
-    fb_id = verify_token(access_token, fb_key)
-    if fb_id is None:
+    access_token = request.form.get('access_token', None)
+    print('Token:', access_token)
+
+    if access_token is None:
         response['status'] = 'error'
         return jsonify(response)
 
-    response['groups'] = get_user_groups(fb_id)
+    fb_id = verify_token(access_token, fb_key)
+    # print(fb_id)
+    if fb_id is None:
+        response['status'] = 'error'
+        return jsonify(response)
     
+    name = get_user_name(fb_id, access_token)
+    print('Name:', name)
+
+    # Add the user's app_id to their document
+    db = couch['users']
+    users_search = db.iterview('userUtil/findUserName', 5, startkey=name, endkey=name)
+    user_real_id = [g.value for g in users_search]
+    if len(user_real_id) == 0:
+        print('User\'s name not found!')
+        response['error-msg'] = 'Name not found!'
+        return jsonify(response)
+    
+    user = db[user_real_id[0]]
+    user['user_id'] = fb_id
+    db.save(user)
+
+    response['groups'] = get_user_groups(db[user_real_id[0]]['id'])[0]
+    print(response['groups'])
+
+    db.commit()
+
     return jsonify(response)
 
 @application.route('/msg/like/', methods=['POST'])
