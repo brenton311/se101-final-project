@@ -4,7 +4,7 @@ import couchdb
 import json
 
 application = Flask(__name__)
-couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
+couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
 fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
 ######################################################################
@@ -30,7 +30,7 @@ def verify_token(token, api_token):
     graph_url = "https://graph.facebook.com/me/"
     r = requests.get("{}".format(graph_url), params={"access_token": token})
     json_data = json.loads(r.text)
-    print(json_data)
+    # print(json_data)
 
     fb_id = json_data.get('id', None)
     return fb_id
@@ -62,6 +62,13 @@ def id_to_name(msgs):
 
     return msgs
 
+# Find the user_id associated with an app id
+def user_id_to_app_id(app_id):
+    db = couch['users']
+    users_search = db.iterview('userUtil/convertID', 5, startkey=app_id, endkey=app_id)
+    user_id = next(users_search).value
+    return user_id
+
 ######################################################################
 # VIEWS
 ######################################################################
@@ -71,19 +78,44 @@ def hello():
 
 @application.route('/login/', methods=['POST'])
 def login():
-    access_token = request.form.get('access_token', None)
-    if access_token is None:
-        return 'Error'
-
     response = {'status': 'ok'}    
 
-    fb_id = verify_token(access_token, fb_key)
-    if fb_id is None:
+    access_token = request.form.get('access_token', None)
+    print('Token:', access_token)
+
+    if access_token is None:
         response['status'] = 'error'
         return jsonify(response)
 
-    response['groups'] = get_user_groups(fb_id)
+    fb_id = verify_token(access_token, fb_key)
+    # print(fb_id)
+    if fb_id is None:
+        response['status'] = 'error'
+        return jsonify(response)
     
+    name = get_user_name(fb_id, access_token)
+    print('Name:', name)
+
+    # Add the user's app_id to their document
+    db = couch['users']
+    users_search = db.iterview('userUtil/findUserName', 5, startkey=name, endkey=name)
+    user_real_id = [g.value for g in users_search]
+    if len(user_real_id) == 0:
+        print('User\'s name not found!')
+        response['error-msg'] = 'Name not found!'
+        return jsonify(response)
+    
+    user = db[user_real_id[0]]
+    user['user_id'] = fb_id
+    db.save(user)
+
+    response['groups'] = get_user_groups(db[user_real_id[0]]['id'])[0]
+    print(response['groups'])
+
+    db.commit()
+
+    # print('ID Conversion:', user_id_to_app_id(fb_id))
+
     return jsonify(response)
 
 @application.route('/msg/like/', methods=['POST'])
@@ -115,7 +147,7 @@ def like_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
 
         # Old messages have like as an integer
         if type(msg['likes']) is not list:
@@ -167,7 +199,7 @@ def dislike_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
         # Old messages have like as an integer
         if type(msg['dislikes']) is not list:
             msg['dislikes'] = []
@@ -211,7 +243,7 @@ def bookmark_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
 
         # Old messages have like as an integer
         if type(msg['bookmarks']) is not list:
@@ -262,7 +294,7 @@ def search_msgs():
             return jsonify(response)
 
         # Check if the user is in the group
-        if group_id not in get_user_groups(fb_id):
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id)):
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
@@ -328,7 +360,7 @@ def get_msgs():
         groups = get_user_groups(fb_id)
         print(groups)
 
-        if group_id not in get_user_groups(fb_id)[0]:
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
