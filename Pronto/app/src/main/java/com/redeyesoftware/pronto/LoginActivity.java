@@ -27,10 +27,9 @@ import org.json.JSONObject;
 public class LoginActivity extends AppCompatActivity {
 
     private CallbackManager callbackManager;
-    static private String email;
-    static private String firstName;
-    static private String lastName;
-    static private String id;
+    static private String firstName="";
+    static private String lastName="";
+    static private String id="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +98,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
                             //Log.i("Graph API Response",response.toString());
-                            email = response.getJSONObject().getString("email");
+                            //email = response.getJSONObject().getString("email");
                             firstName = response.getJSONObject().getString("first_name");
                             lastName = response.getJSONObject().getString("last_name");
                             //String gender = response.getJSONObject().getString("gender");
@@ -113,17 +112,16 @@ public class LoginActivity extends AppCompatActivity {
                             {
                                 Log.i("Login", "ProfilePic" + Profile.getCurrentProfile().getProfilePictureUri(200, 200));
                             }*/
-                            Log.i("Login" + "Email", email);
-                            Log.i("Login"+ "FirstName", firstName);
-                            Log.i("Login" + "LastName", lastName);
-                            Log.i("Login" + "ID", id);
+                            Log.i("Login "+ "FirstName", firstName);
+                            Log.i("Login " + "LastName", lastName);
+                            Log.i("Login " + "ID", id);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
                 });
         Bundle parameters = new Bundle();
-        parameters.putString("fields", "id,email,first_name,last_name,gender, birthday");
+        parameters.putString("fields", "id,first_name,last_name");
         request.setParameters(parameters);
         request.executeAsync();
     }

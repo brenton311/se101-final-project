@@ -95,10 +95,14 @@ public class FeedFragment extends Fragment {
         for (int i = 0; i < NetworkingUtility.comments.length; i++) {
             //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
             String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
-            boolean iLiked = NetworkingUtility.comments[i][5].indexOf(LoginActivity.getId()) != -1;
-            boolean iBookmarked = NetworkingUtility.comments[i][6].indexOf(LoginActivity.getId()) != -1;
-            int numLikes = NetworkingUtility.comments[i][5].length() - NetworkingUtility.comments[i][5].replace(",", "").length();
-            int numBookmarks =  NetworkingUtility.comments[i][6].length() - NetworkingUtility.comments[i][6].replace(",", "").length();
+            boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
+            boolean iBookmarked = NetworkingUtility.comments[i][5].indexOf(LoginActivity.getId()) != -1;
+            int numLikes = NetworkingUtility.comments[i][4].length() - NetworkingUtility.comments[i][4].replace(",", "").length();
+            int numBookmarks =  NetworkingUtility.comments[i][5].length() - NetworkingUtility.comments[i][5].replace(",", "").length();
+            if (numLikes>0) numLikes++;
+            if (numBookmarks>0) numBookmarks++;
+            if (numLikes==0 && NetworkingUtility.comments[i][4].length()>4) numLikes=1;
+            if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
             Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
