@@ -48,6 +48,8 @@ public class LoginActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.e("Login Success", loginResult.getAccessToken().getToken());
 
+                NetworkingUtility.post("/login", "access_token", loginResult.getAccessToken().getToken());
+
                 SharedPreferences.Editor editor = getSharedPreferences("PrefsFile", MODE_PRIVATE).edit();
                 editor.putString("accessToken", loginResult.getAccessToken().getToken());
                 editor.commit();
@@ -73,6 +75,8 @@ public class LoginActivity extends AppCompatActivity {
 
     public static boolean isLoggedIn() {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        //Todo: remove the posting of access token each time
+        NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
         return accessToken != null;
     }
 

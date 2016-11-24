@@ -25,6 +25,8 @@ public class MainPage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        NetworkingUtility.setUpRequestQueue(this);
+
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
 
@@ -57,8 +59,6 @@ public class MainPage extends AppCompatActivity {
         //This method sets the toolbar as the app bar for the activity
         //By default, the action bar contains just the name of the app and an overflow menu.
         // The options menu initially contains just the Settings item.
-
-        NetworkingUtility.setUpRequestQueue(this);
     }
 
     // Menu icons are inflated just as they were with actionbar
