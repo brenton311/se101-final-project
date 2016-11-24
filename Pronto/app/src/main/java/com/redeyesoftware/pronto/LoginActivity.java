@@ -13,14 +13,24 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.Profile;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class LoginActivity extends AppCompatActivity {
 
-    CallbackManager callbackManager;
+    private CallbackManager callbackManager;
+    static private String email;
+    static private String firstName;
+    static private String lastName;
+    static private String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +86,50 @@ public class LoginActivity extends AppCompatActivity {
     public static boolean isLoggedIn() {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         //Todo: remove the posting of access token each time
-        //NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
+       // NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
         return accessToken != null;
+    }
+
+    public static void setFacebookData()
+    {
+        GraphRequest request = GraphRequest.newMeRequest(
+                AccessToken.getCurrentAccessToken(),
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            //Log.i("Graph API Response",response.toString());
+                            email = response.getJSONObject().getString("email");
+                            firstName = response.getJSONObject().getString("first_name");
+                            lastName = response.getJSONObject().getString("last_name");
+                            //String gender = response.getJSONObject().getString("gender");
+                            //String bday= response.getJSONObject().getString("birthday");
+
+                            Profile profile = Profile.getCurrentProfile();
+                            id = profile.getId();
+                            /*String link = profile.getLinkUri().toString();
+                            Log.i("Link",link);
+                            if (Profile.getCurrentProfile()!=null)
+                            {
+                                Log.i("Login", "ProfilePic" + Profile.getCurrentProfile().getProfilePictureUri(200, 200));
+                            }*/
+                            Log.i("Login" + "Email", email);
+                            Log.i("Login"+ "FirstName", firstName);
+                            Log.i("Login" + "LastName", lastName);
+                            Log.i("Login" + "ID", id);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,email,first_name,last_name,gender, birthday");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    public static String getId() {
+        return id;
     }
 
     @Override

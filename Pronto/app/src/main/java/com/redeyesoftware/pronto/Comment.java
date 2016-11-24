@@ -48,6 +48,8 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
     int likes = 0;
     boolean iLiked = false;
     int bookmarks = 0;
+    boolean iBookmarked = false;
+    boolean commentIsBookmark = false;
     Context parentActivity;
 
     public Comment(Context context) {
@@ -65,7 +67,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         init();
     }
 
-    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks) {
+    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark) {
         super(context);
         parentActivity = context;
         this.messageID = messageID;
@@ -75,6 +77,8 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         this.likes = likes;
         this.iLiked = iLiked;
         this.bookmarks = bookmarks;
+        this.iBookmarked = iBookmarked;
+        this.commentIsBookmark = commentIsBookmark;
         init();
     }
 
@@ -93,6 +97,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
+                        //if ()
                         //FeedFragment.linear.removeView(FeedFragment.linear.getChildAt(0));
                         //the above resulted in an error because Only the original thread that created a view hierarchy can touch its views.
                         FeedFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));

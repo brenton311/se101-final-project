@@ -25,12 +25,14 @@ public class MainPage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        NetworkingUtility.setUpRequestQueue(this);
+        NetworkingUtility.setUpRequestQueue(this);//must be before login becuase login posts token
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
 
-        if (!LoginActivity.isLoggedIn()) {
+        if (LoginActivity.isLoggedIn()) {
+            LoginActivity.setFacebookData();
+        } else {
             Intent intent = new Intent(this, LoginActivity.class);
 
             //deletes all prev activities from the back stack (otherwise pressing back access feed without logging in)

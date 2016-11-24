@@ -1,6 +1,7 @@
 package com.redeyesoftware.pronto;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
@@ -23,12 +24,13 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import static android.content.Context.MODE_PRIVATE;
 import static bolts.Task.delay;
 
 
 public class FeedFragment extends Fragment {
 
-    private final boolean TESTING_MODE  =true;
+    private final boolean TESTING_MODE  =false;
 
     private static FeedFragment me;
 
@@ -51,17 +53,20 @@ public class FeedFragment extends Fragment {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_feed, container, false);
         if (!TESTING_MODE) {
-            NetworkingUtility.getComments("/inbox/main/", 30, "1127396163964738", "fillFeed", new String[]{
-                    "author_id", "msg_id", "text", "timestamp"
+            SharedPreferences prefs = getActivity().getSharedPreferences("PrefsFile", MODE_PRIVATE);
+            String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+            //Log.d("got prefs accesstoken",token);
+            NetworkingUtility.getComments("/inbox/main/", token, 30, "1127396163964738", "fillFeed", new String[]{
+                    "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
             });
 
             //NetworkingUtility.get("/inbox/main/", new String[] {"max_messages","group_id"}, new String[] {"20","mid.1479427826988:c661492721"});
 
-        /*for (int i=0;i<comments.length;i++) {
-            for (int j=0; j<4;j++) {
-                Log.d("output",comments[i][j]);
-            }
-        }*/
+            /*for (int i=0;i<comments.length;i++) {
+                 for (int j=0; j<4;j++) {
+                      Log.d("output",comments[i][j]);
+                 }
+            }*/
         }
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
@@ -72,8 +77,8 @@ public class FeedFragment extends Fragment {
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
         if (TESTING_MODE) {
             for (int i=0; i<10; i++) {
-                //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
-                Comment cmt = new Comment(getActivity(),"", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10);
+                //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean isBookmarked, boolean commentIsBookmark
+                Comment cmt = new Comment(getActivity(), i+"000", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10,false, false);
                 cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 linear.addView(cmt);
             }
@@ -90,7 +95,11 @@ public class FeedFragment extends Fragment {
         for (int i = 0; i < NetworkingUtility.comments.length; i++) {
             //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
             String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
-            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time,0,false,0);
+            boolean iLiked = NetworkingUtility.comments[i][5].indexOf(LoginActivity.getId()) != -1;
+            boolean iBookmarked = NetworkingUtility.comments[i][6].indexOf(LoginActivity.getId()) != -1;
+            int numLikes = NetworkingUtility.comments[i][5].length() - NetworkingUtility.comments[i][5].replace(",", "").length();
+            int numBookmarks =  NetworkingUtility.comments[i][6].length() - NetworkingUtility.comments[i][6].replace(",", "").length();
+            Comment cmt = new Comment(me.getActivity(), NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }
