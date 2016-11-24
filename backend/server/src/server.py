@@ -4,7 +4,7 @@ import couchdb
 import json
 
 application = Flask(__name__)
-couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
+couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
 fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
 ######################################################################
@@ -147,7 +147,7 @@ def like_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
 
         # Old messages have like as an integer
         if type(msg['likes']) is not list:
@@ -199,7 +199,7 @@ def dislike_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
         # Old messages have like as an integer
         if type(msg['dislikes']) is not list:
             msg['dislikes'] = []
@@ -243,7 +243,7 @@ def bookmark_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(fb_id)[0]: # Uses 0 because it is an [] of [] by accident
+    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
 
         # Old messages have like as an integer
         if type(msg['bookmarks']) is not list:
@@ -294,7 +294,7 @@ def search_msgs():
             return jsonify(response)
 
         # Check if the user is in the group
-        if group_id not in get_user_groups(fb_id):
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id)):
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
