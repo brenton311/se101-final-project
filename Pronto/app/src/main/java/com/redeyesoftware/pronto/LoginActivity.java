@@ -76,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
     public static boolean isLoggedIn() {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         //Todo: remove the posting of access token each time
-        NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
+        //NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
         return accessToken != null;
     }
 

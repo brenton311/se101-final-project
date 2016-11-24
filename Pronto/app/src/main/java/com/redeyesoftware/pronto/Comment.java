@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.facebook.share.model.ShareLinkContent;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -134,25 +135,38 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks);
                 ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
 
-                try {
-                    FileInputStream fileIn = new FileInputStream("SavedProntoBookmarks.txt");
-                    ObjectInputStream in = new ObjectInputStream(fileIn);
-                    bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
-                    //Log.i("palval", "dir.exists()");
-                    in.close();
-                    fileIn.close();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                File bookmarksFile = new File(parentActivity.getFilesDir().getPath().toString() + "/SavedProntoBookmarks.txt");
+                if (bookmarksFile.exists()) {
+                    Log.d("Debug", "comment found file");
+                    try {
+                        FileInputStream fileIn = new FileInputStream(bookmarksFile);
+                        ObjectInputStream in = new ObjectInputStream(fileIn);
+                        bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+                        //Log.i("palval", "dir.exists()");
+                        in.close();
+                        fileIn.close();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Log.d("Debug", "comment did not find file");
+                    try {
+                        bookmarksFile.createNewFile(); // if file already exists will do nothing
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 bookmarkList.add(newBookmark);
 
                 try {
-                    FileOutputStream fileOut = new FileOutputStream("SavedProntoBookmarks.txt");
+                    FileOutputStream fileOut = new FileOutputStream(bookmarksFile);
                     ObjectOutputStream out = new ObjectOutputStream(fileOut);
                     out.writeObject(bookmarkList);//this is only possible becuase SerializableBookmark implements Serializable
                     out.close();
@@ -163,6 +177,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                     e.printStackTrace();
                 }
 
+                Log.d("Debug", "Bookmark successfully added");
             }
         });
 

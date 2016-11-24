@@ -23,6 +23,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,20 +57,34 @@ public class BookmarksFragment extends Fragment {
         //return inflater.inflate(R.layout.fragment_feed, container, false);
 
         ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
-        try {
-            FileInputStream fileIn = new FileInputStream("SavedProntoBookmarks.txt");
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
-            //Log.i("palval", "dir.exists()");
-            in.close();
-            fileIn.close();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        File bookmarksFile = new File(getActivity().getFilesDir().getPath().toString() + "/SavedProntoBookmarks.txt");
+        if (bookmarksFile.exists()) {
+            Log.d("Debug", "bookmark frag found file");
+            try {
+                FileInputStream fileIn = new FileInputStream(bookmarksFile);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+                //Log.i("palval", "dir.exists()");
+                in.close();
+                fileIn.close();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("Debug", "bookmark frag did not find file");
+            try {
+                bookmarksFile.createNewFile(); // if file already exists will do nothing
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        Log.d("Debug:", bookmarkList.size() + " bookmarks found");
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
         ScrollView scroll = new ScrollView(getActivity());

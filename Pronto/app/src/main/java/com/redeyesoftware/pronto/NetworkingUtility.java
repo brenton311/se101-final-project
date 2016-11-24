@@ -41,7 +41,7 @@ public class NetworkingUtility {
 
         SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        Log.d("retrieved access token",token);
+        Log.d("got prefs accesstoken",token);
     }
 
     private static void callMethodOnFinished(String key) {
