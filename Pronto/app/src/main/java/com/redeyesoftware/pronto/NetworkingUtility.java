@@ -5,6 +5,7 @@ package com.redeyesoftware.pronto;
  */
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -15,6 +16,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.AccessToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +25,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.content.Context.MODE_PRIVATE;
 import static bolts.Task.delay;
 
 public class NetworkingUtility {
@@ -31,9 +34,14 @@ public class NetworkingUtility {
     public static RequestQueue queue;
     public static String response;
     public static String comments[][];
+    public static String token;
 
-    public static void setUpRequestQueue(Context parentActivity) {
+    public static void setUpRequestQueue(MainPage parentActivity) {
         queue = Volley.newRequestQueue(parentActivity);
+
+        SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+        token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+        Log.d("retrieved access token",token);
     }
 
     private static void callMethodOnFinished(String key) {
@@ -47,7 +55,7 @@ public class NetworkingUtility {
     public static void getComments(final String urlEnd, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
         comments = new String[max_messages][tags.length];//if not rewriiten, will send back empty array
         //Todo: consider when get less than max_messages
-        String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id;
+        String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
 
         Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
@@ -185,9 +193,9 @@ public class NetworkingUtility {
         return response;
     }
 */
-    public static void send(final String key, final String msg) {
+    public static void post(final String key, final String msg) {
         // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
