@@ -43,7 +43,7 @@ public class NetworkingUtility {
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                FeedFragment.addCommentsToFeed();
+                RefreshableScrollView.addCommentsToFeed();
                 return;
         }
     }
@@ -60,7 +60,21 @@ public class NetworkingUtility {
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
-                        Log.d("The JSON was:", response.toString());
+                        //Log.d("The JSON was:", response.toString());
+                        //changed to below b/c messages exceed max length of roughly 4000 chars
+                        if (response.toString().length() > 4000) {
+                            int chunkCount = response.length() / 4000;     // integer division
+                            for (int i = 0; i <= chunkCount+1; i++) {
+                                int max = 4000 * (i + 1);
+                                if (max >= response.length()) {
+                                    Log.v("The JSON was:", "chunk " + i + " of " + chunkCount + ":" + response.toString().substring(4000 * i));
+                                } else {
+                                    Log.v("The JSON was:", "chunk " + i + " of " + chunkCount + ":" + response.toString().substring(4000 * i, max));
+                                }
+                            }
+                        } else {
+                            Log.v("The JSON was:", response.toString());
+                        }
 
                         try {
                             // Parsing json array response, loop through each json object

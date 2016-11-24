@@ -100,7 +100,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                         //if ()
                         //FeedFragment.linear.removeView(FeedFragment.linear.getChildAt(0));
                         //the above resulted in an error because Only the original thread that created a view hierarchy can touch its views.
-                        FeedFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
+                        RefreshableScrollView.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
                         //simply running from Frag Class didnt fix this; likely because it doesnt change the thread
                         //the real reason why this works is I used Activity.runInUIThread to get the removal to run in original thread
                         //couldnt have used it here, inside comment, because it runs from an Activity (which the fragment can reference with getActivity() )
