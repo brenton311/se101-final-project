@@ -30,18 +30,14 @@ import static bolts.Task.delay;
 
 public class NetworkingUtility {
 
-    public static String url = "http://www.prontoai.com:5000";
+    public static String url = "http://www.prontoai.com";
     public static RequestQueue queue;
     public static String response;
+    //Todo: make private; use getters
     public static String comments[][];
-    public static String token;
 
     public static void setUpRequestQueue(MainPage parentActivity) {
         queue = Volley.newRequestQueue(parentActivity);
-
-        SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
-        token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        Log.d("got prefs accesstoken",token);
     }
 
     private static void callMethodOnFinished(String key) {
@@ -52,8 +48,9 @@ public class NetworkingUtility {
         }
     }
 
-    public static void getComments(final String urlEnd, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
+    public static void getComments(final String urlEnd, final String token, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
         comments = new String[max_messages][tags.length];//if not rewriiten, will send back empty array
+
         //Todo: consider when get less than max_messages
         String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
 
