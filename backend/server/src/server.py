@@ -62,6 +62,13 @@ def id_to_name(msgs):
 
     return msgs
 
+# Find the user_id associated with an app id
+def user_id_to_app_id(app_id):
+    db = couch['users']
+    users_search = db.iterview('userUtil/convertID', 5, startkey=app_id, endkey=app_id)
+    user_id = next(users_search).value
+    return user_id
+
 ######################################################################
 # VIEWS
 ######################################################################
@@ -106,6 +113,8 @@ def login():
     print(response['groups'])
 
     db.commit()
+
+    # print('ID Conversion:', user_id_to_app_id(fb_id))
 
     return jsonify(response)
 
@@ -351,7 +360,7 @@ def get_msgs():
         groups = get_user_groups(fb_id)
         print(groups)
 
-        if group_id not in get_user_groups(fb_id)[0]:
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
