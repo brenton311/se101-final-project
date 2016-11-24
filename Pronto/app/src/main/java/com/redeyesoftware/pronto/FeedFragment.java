@@ -71,14 +71,11 @@ public class FeedFragment extends Fragment {
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
         if (TESTING_MODE) {
-          /*  for (int i=0; i<bookmarkList.size(); i++) {
+            for (int i=0; i<10; i++) {
                 //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
-                Comment cmt = new Comment(
-                        me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
-                        bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks()
-                );
+                Comment cmt = new Comment(getActivity(),"", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10);
                 cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                me.linear.addView(cmt);
+                linear.addView(cmt);
             }
         }
         scroll.addView(linear);
