@@ -97,7 +97,8 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         SharedPreferences prefs = me.parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
-        NetworkingUtility.getComments("/inbox/main/", token, 30, "1127396163964738", "fillFeed", new String[]{
+        //smartest in canada 1127396163964738
+        NetworkingUtility.getComments("/inbox/main/", token, 30, "1150546131643551", "fillFeed", new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
         });
         me.linear.removeAllViews();
@@ -173,7 +174,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
     private void createProgressBarLayout() {
-        topMargin = 100;//-Math.round(6 * act.metrics.density);
+        topMargin = 400;//height of progress from top
         dragLength = 100;//Math.round(act.screen_size.y / 2.5f);
 
         LinearLayout top = new LinearLayout(parentAcivity);
@@ -190,6 +191,8 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         progress = new ProgressBar(parentAcivity);//, null, android.R.attr.progressBarStyleHorizontal);
         progress.setProgress(100);
         progress.setIndeterminate(false);
+        //In indeterminate mode, the progress bar shows a cyclic animation without an indication of progress.
+        progress.getIndeterminateDrawable().setColorFilter(0xFFFF0000,android.graphics.PorterDuff.Mode.MULTIPLY);
         // progress.setBackgroundResource(R.drawable.progress_bar);
         FrameLayout right = new FrameLayout(parentAcivity);
 

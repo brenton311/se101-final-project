@@ -31,7 +31,7 @@ import static bolts.Task.delay;
 
 public class FeedFragment extends Fragment {
 
-    private final boolean TESTING_MODE  =true;
+    private final boolean TESTING_MODE  =false;
 
     private static FeedFragment me;
 

@@ -30,7 +30,7 @@ import static bolts.Task.delay;
 
 public class NetworkingUtility {
 
-    public static String url = "http://www.prontoai.com";
+    public static String url = "http://www.prontoai.com:5000";
     public static RequestQueue queue;
     public static String response;
     //Todo: make private; use getters
