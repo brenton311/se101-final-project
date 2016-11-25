@@ -28,7 +28,7 @@ public class HomePagesAdapter extends FragmentPagerAdapter {
             case 1:
                 return new ChatFragment();
             case 2:
-                return new Fragment();
+                return new BookmarksFragment();
             default:
                 return null;
         }

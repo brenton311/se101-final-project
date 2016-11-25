@@ -5,6 +5,7 @@ package com.redeyesoftware.pronto;
  */
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -15,6 +16,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.AccessToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +25,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.content.Context.MODE_PRIVATE;
 import static bolts.Task.delay;
 
 public class NetworkingUtility {
@@ -30,24 +33,26 @@ public class NetworkingUtility {
     public static String url = "http://www.prontoai.com:5000";
     public static RequestQueue queue;
     public static String response;
+    //Todo: make private; use getters
     public static String comments[][];
 
-    public static void setUpRequestQueue(Context parentActivity) {
+    public static void setUpRequestQueue(MainPage parentActivity) {
         queue = Volley.newRequestQueue(parentActivity);
     }
 
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                FeedFragment.addCommentsToFeed();
+                RefreshableScrollView.addCommentsToFeed();
                 return;
         }
     }
 
-    public static void getComments(final String urlEnd, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
+    public static void getComments(final String urlEnd, final String token, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
         comments = new String[max_messages][tags.length];//if not rewriiten, will send back empty array
+
         //Todo: consider when get less than max_messages
-        String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id;
+        String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
 
         Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
@@ -55,7 +60,21 @@ public class NetworkingUtility {
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
-                        Log.d("The JSON was:", response.toString());
+                        //Log.d("The JSON was:", response.toString());
+                        //changed to below b/c messages exceed max length of roughly 4000 chars
+                        if (response.toString().length() > 4000) {
+                            int chunkCount = response.length() / 4000;     // integer division
+                            for (int i = 0; i <= chunkCount+1; i++) {
+                                int max = 4000 * (i + 1);
+                                if (max >= response.length()) {
+                                    Log.v("The JSON was:", "chunk " + i + " of " + chunkCount + ":" + response.toString().substring(4000 * i));
+                                } else {
+                                    Log.v("The JSON was:", "chunk " + i + " of " + chunkCount + ":" + response.toString().substring(4000 * i, max));
+                                }
+                            }
+                        } else {
+                            Log.v("The JSON was:", response.toString());
+                        }
 
                         try {
                             // Parsing json array response, loop through each json object
@@ -185,14 +204,15 @@ public class NetworkingUtility {
         return response;
     }
 */
-    public static void send(final String key, final String msg) {
+    public static void post(final String urlEnd, final String key, final String msg) {
         // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        String newUrl = url + urlEnd;
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, newUrl,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d("Debug", "Response is: " + response.substring(0, 500));
+                        Log.d("Debug", "Response to post is: " + response);
                     }
                 }, new Response.ErrorListener() {
             @Override
