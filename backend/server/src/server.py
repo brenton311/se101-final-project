@@ -366,6 +366,7 @@ def get_msgs():
             return jsonify(response)
 
         # If no starting message is provided, start with the newest
+        # TODO: Add check for specific group
         gen = None
         if start_msg is not None:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
