@@ -189,7 +189,7 @@ if __name__ == '__main__':
 			while oldest_updated > newest_time:
 				print('Getting new messages...')
 				new_data = download_latest_msgs(max_msgs, group_id)
-				print(new_data)
+				# print(new_data)
 
 				new_msgs = extract_msgs(new_data, group_id)
 				new_msgs.extend(get_messages_since(new_msgs, newest_time))
