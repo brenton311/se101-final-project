@@ -240,7 +240,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         left.setLayoutParams(leftParams);
 
         LinearLayout.LayoutParams progressParams = (LinearLayout.LayoutParams) progress.getLayoutParams();
-        progressParams.weight = 2;
+        progressParams.weight = 0;
         progressParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         progressParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         progressParams.topMargin = topMargin;
