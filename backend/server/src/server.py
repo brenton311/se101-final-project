@@ -175,7 +175,7 @@ def like_msg():
         response['error-msg'] = 'Not in group!'
         return jsonify(response)
 
-@application.route('/msg/dislikes/', methods=['POST'])
+@application.route('/msg/dislike/', methods=['POST'])
 def dislike_msg():
     msg_id = request.form.get('msg_id', '')
     access_token = request.form.get('access_token', None)
@@ -189,10 +189,10 @@ def dislike_msg():
         return jsonify(response)
 
     # Check if the user is in the group
-    if fb_id not in get_user_groups(fb_id):
-        response['status'] = 'error'
-        response['error-msg'] = 'You are not in the group!'
-        return jsonify(response)
+    # if fb_id not in get_user_groups(fb_id):
+    #     response['status'] = 'error'
+    #     response['error-msg'] = 'You are not in the group!'
+    #     return jsonify(response)
     
 
     db = couch['messages']
@@ -302,7 +302,7 @@ def search_msgs():
             return jsonify(response)
 
         # Limit the number of returned messages per queue
-        max_messages = min(max_messages, 30)
+        max_messages = min(max_messages, 100)
         db = couch['messages']
 
         # If no starting message is provided, start with the newest
@@ -353,7 +353,7 @@ def get_msgs():
         start_msg = request.args.get('start', None)
 
         # Limit the number of returned messages per queue
-        max_messages = min(max_messages, 30)
+        max_messages = min(max_messages, 100)
         db = couch['messages']
 
         response = {'status': 'ok'}    
@@ -382,6 +382,9 @@ def get_msgs():
         else:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         msgs = [m.value for m in gen]
+        for m in msgs:
+            if user_id_to_app_id(fb_id) in m['dislikes']:
+                msgs.remove(m)
         msgs = id_to_name(msgs)
 
         return jsonify(msgs)
