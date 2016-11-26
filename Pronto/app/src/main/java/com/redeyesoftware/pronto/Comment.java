@@ -131,7 +131,12 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
         ((ImageButton) findViewById(R.id.likeBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                SharedPreferences prefs = this.parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+                String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+                NetworkingUtility.getComments("/msg/like/", token, 30, "1150546131643551", "fillFeed", new String[]{
+                        "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                });
+                me.linear.removeAllViews();
             }
         });
 
