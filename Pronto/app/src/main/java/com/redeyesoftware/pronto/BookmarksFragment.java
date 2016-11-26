@@ -93,7 +93,7 @@ public class BookmarksFragment extends Fragment {
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
         for (int i=bookmarkList.size()-1; i>=0; i--) {
-            //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
+            //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark
             Comment cmt = new Comment(
                     me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
                     bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks(), true, true

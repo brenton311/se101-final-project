@@ -47,9 +47,17 @@ public class MainPage extends AppCompatActivity {
 
 
 
-        HomePagesAdapter mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
+        final HomePagesAdapter mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
         ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageSelected(int index) {mFragPagerAdapter.notifyDataSetChanged();}
+            @Override
+            public void onPageScrolled(int arg0, float arg1, int arg2) {}
+            @Override
+            public void onPageScrollStateChanged(int arg0) {}
+        });
 
         //the below wouldnt be necessary if tablayout was defined inside the view pager in the xml
         //in this case, instead, it is part of the toolbar to create  cleaner app bar

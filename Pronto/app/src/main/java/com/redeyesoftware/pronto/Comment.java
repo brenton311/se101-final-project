@@ -178,7 +178,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
                 String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
                 NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,messageID});
-                TextView numBookmarks =  ((TextView)(findViewById(R.id.numLikes)));
+                TextView numBookmarks =  ((TextView)(findViewById(R.id.numBookmarks)));
                 if (iBookmarked) {
                     iBookmarked = false;
                     bookmarks--;
@@ -257,6 +257,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         }
 
         Log.d("Debug", "Bookmark successfully added/deleted");
+
     }
 
    /* @Override
