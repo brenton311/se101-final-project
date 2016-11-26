@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -120,8 +121,25 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         ((TextView)(findViewById(R.id.message))).setText(message);
         ((TextView)(findViewById(R.id.author))).setText(author);
         ((TextView)(findViewById(R.id.date))).setText(date);
-        ((TextView)(findViewById(R.id.numLikes))).setText("" + likes);
         ((TextView)(findViewById(R.id.numBookmarks))).setText("" + bookmarks);
+
+        TextView numLikes =  ((TextView)(findViewById(R.id.numLikes)));
+        numLikes.setText("" + likes);
+        if (iLiked) {
+            numLikes.setTextColor(getResources().getColor(R.color.liked));
+            numLikes.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
+        }
+
+        TextView numBookmarks =  ((TextView)(findViewById(R.id.numBookmarks)));
+        numLikes.setText("" + bookmarks);
+        if (iLiked) {
+            numBookmarks.setTextColor(getResources().getColor(R.color.liked));
+            numBookmarks.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
+        }
+
+        if (commentIsBookmark) {
+
+        }
 
         ((ImageButton) findViewById(R.id.viewInNewBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -131,12 +149,24 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
         ((ImageButton) findViewById(R.id.likeBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                SharedPreferences prefs = this.parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+                SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
                 String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-                NetworkingUtility.getComments("/msg/like/", token, 30, "1150546131643551", "fillFeed", new String[]{
-                        "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
-                });
-                me.linear.removeAllViews();
+                NetworkingUtility.post("/msg/like/", new String[]{"access_token","msg_id"}, new String[]{token,messageID});
+                TextView numLikes =  ((TextView)(findViewById(R.id.numLikes)));
+                if (iLiked) {
+                    iLiked = false;
+                    likes--;
+                    numLikes.setText("" + likes);
+                    numLikes.setTextColor(getResources().getColor(R.color.offWhite));
+                    numLikes.setTypeface(null, Typeface.NORMAL);
+                } else {
+                    iLiked = true;
+                    likes++;
+                    numLikes.setText("" + likes);
+                    numLikes.setTextColor(getResources().getColor(R.color.liked));
+                    numLikes.setTypeface(null, Typeface.BOLD);
+                }
+                Log.d("Debug", "Message liked");
             }
         });
 

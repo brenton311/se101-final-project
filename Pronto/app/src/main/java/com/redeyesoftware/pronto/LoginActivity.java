@@ -57,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.e("Login Success", loginResult.getAccessToken().getToken());
 
-                NetworkingUtility.post("/login", "access_token", loginResult.getAccessToken().getToken());
+                NetworkingUtility.post("/login/", new String[]{"access_token"}, new String[]{loginResult.getAccessToken().getToken()});
 
                 SharedPreferences.Editor editor = getSharedPreferences("PrefsFile", MODE_PRIVATE).edit();
                 editor.putString("accessToken", loginResult.getAccessToken().getToken());
