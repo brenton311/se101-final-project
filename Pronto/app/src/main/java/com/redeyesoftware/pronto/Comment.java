@@ -187,7 +187,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                     numBookmarks.setTypeface(null, Typeface.NORMAL);
                     updateBookmarks(true);
                     if (commentIsBookmark) {
-                        BookmarksFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
+                        BookmarksFragment.removeCommentFromBookmarks(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
                     }
                 } else {
                     iBookmarked = true;
