@@ -100,7 +100,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
-        NetworkingUtility.getComments("/inbox/main/", token, 30, "1150546131643551", "fillFeed", new String[]{
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillFeed", new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
         });
         me.linear.removeAllViews();

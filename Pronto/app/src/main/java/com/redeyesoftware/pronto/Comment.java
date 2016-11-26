@@ -86,8 +86,11 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
     private void remove() {
 
         //Log.d("Debug", "deleted");
-        //Todo: send messageID to server what was deleted
-        //NetworkingUtility.get("/inbox/main/", new String[] {"max_messages","group_id"}, new String[] {"20","mid.1479427826988:c661492721"});
+        Log.d("Debug", "Message disliked");
+        SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+        String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+        NetworkingUtility.post("/msg/dislike/", new String[]{"access_token", "msg_id"}, new String[]{token, messageID});
+
         //Start animation with 500 miliseconds of time
         this.startAnimation(outToRightAnimation(500));
         //after 500 miliseconds remove from linear layout
@@ -130,7 +133,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
             numLikes.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
         }
 
-        TextView numBookmarks =  ((TextView)(findViewById(R.id.numBookmarks)));
+        final TextView numBookmarks =  ((TextView)(findViewById(R.id.numBookmarks)));
         numBookmarks.setText("" + bookmarks);
         if (iBookmarked) {
             numBookmarks.setTextColor(getResources().getColor(R.color.liked));
@@ -172,90 +175,67 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
         ((ImageButton) findViewById(R.id.bookmarkBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks);
-                ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
 
-                File bookmarksFile = new File(parentActivity.getFilesDir().getPath().toString() + "/SavedProntoBookmarks.txt");
-                if (bookmarksFile.exists()) {
-                    Log.d("Debug", "comment found file");
-                    try {
-                        FileInputStream fileIn = new FileInputStream(bookmarksFile);
-                        ObjectInputStream in = new ObjectInputStream(fileIn);
-                        bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
-                        //Log.i("palval", "dir.exists()");
-                        in.close();
-                        fileIn.close();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    Log.d("Debug", "comment did not find file");
-                    try {
-                        bookmarksFile.createNewFile(); // if file already exists will do nothing
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                bookmarkList.add(newBookmark);
-
-                try {
-                    FileOutputStream fileOut = new FileOutputStream(bookmarksFile);
-                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                    out.writeObject(bookmarkList);//this is only possible becuase SerializableBookmark implements Serializable
-                    out.close();
-                    fileOut.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                Log.d("Debug", "Bookmark successfully added");
             }
         });
 
+    }
 
-        /*
-        --Code from Sportigo--
-        String eventName = "";
-        double longi = 0;
-        double lat = 0;
-        int totalNeeded = 0;
-        String desc = "";
-        String poster = "";
-        String participants = "";
-        String eventTime = "";
-        eventId = 0;
-        (TextView)(findViewById(R.id.eventName)).setText(eventName);
-        (TextView)(findViewById(R.id.time)).setText(""+eventTime);
-        (TextView)(findViewById(R.id.desc)).setText(desc);
-        (TextView)(findViewById(R.id.loc)).setText(longi+", "+lat);
-        (TextView)(findViewById(R.id.peeps)).setText((participants.split(",").length+"/"+totalNeeded));
-        (TextView)(findViewById(R.id.poster)).setText(poster);
-        ProgressBar p = (ProgressBar)(findViewById(R.id.progressBar));
-        p.setProgress(100*( (participants.split(",").length) / (float)(totalNeeded) );
+    private void updateBookmarks(boolean delete) {
+        ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
 
-
-        --Code from AI Labs--
-        RelativeLayout hpdown1  = (RelativeLayout)findViewById(R.id.codefile1);
-        Resources res = getResources();
-        if (type==0) {
-            hpdown1.setBackground((res.getDrawable(R.drawable.gradient)));
-        }else {
-            hpdown1.setBackground((res.getDrawable(R.drawable.gradient2)));
+        File bookmarksFile = new File(parentActivity.getFilesDir().getPath().toString() + "/SavedProntoBookmarks.txt");
+        if (bookmarksFile.exists()) {
+            Log.d("Debug", "comment found file");
+            try {
+                FileInputStream fileIn = new FileInputStream(bookmarksFile);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+                //Log.i("palval", "dir.exists()");
+                in.close();
+                fileIn.close();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("Debug", "comment did not find file");
+            try {
+                bookmarksFile.createNewFile(); // if file already exists will do nothing
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        //request server data
-        setOnClickListener(this);
-        ((TextView)(findViewById(R.id.typeTitle))).setText(((type==1)?"TANKS AI # ":"PONG AI # ") + index);
-        ((TextView)(findViewById(R.id.dateTitle))).setText(date);
-        */
+
+        if (delete) {
+            for (int i=0; i<bookmarkList.size();i++) {
+                if(bookmarkList.get(i).getMessageID().equals(messageID)) {
+                    bookmarkList.remove(i);
+                }
+            }
+        } else {
+            SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks);
+            bookmarkList.add(newBookmark);
+        }
+
+        try {
+            FileOutputStream fileOut = new FileOutputStream(bookmarksFile);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(bookmarkList);//this is only possible becuase SerializableBookmark implements Serializable
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("Debug", "Bookmark successfully added");
     }
 
    /* @Override
