@@ -9,19 +9,9 @@ import StringIO
 import requests
 import time
 import couchdb
-
-__author__ = "Raghav Sood"
-__copyright__ = "Copyright 2014"
-__credits__ = ["Raghav Sood"]
-__license__ = "CC"
-__version__ = "1.0"
-__maintainer__ = "Raghav Sood"
-__email__ = "raghavsood@appaholics.in"
-__status__ = "Production"
-
+import math
 
 couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
-
 
 app_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
@@ -34,7 +24,7 @@ end_mark = "\"payload\":{\"end_of_history\""
 headers = {"origin": "https://www.facebook.com", 
 "accept-encoding": "gzip,deflate", 
 "accept-language": "en-US,en;q=0.8", 
-"cookie": "datr=ur7xVysz10aPNLg-GNF-pzQW; locale=en_US; sb=9qEqWAyh9cOPQoyCW7z2iAZ8; pl=n; lu=ggUtnl5ELav9__4E9jywIqBg; c_user=100014262394138; xs=25%3ACCs_fSuEIqKUTQ%3A2%3A1479399287%3A-1; fr=0YEDN2KhNtV8svjFc.AWUbzsLbtC4usAvOV2-qP9E_CLI.BX8b66.mw.AAA.0.0.BYMK2P.AWWiZvCP; csm=2; s=Aa7ow7DXSoUvaYoU.BYLdd3; act=1479585180652%2F5; presence=EDvF3EtimeF1479585193EuserFA21B14262394138A2EstateFDt2F_5b_5dElm2FnullEuct2F1479584566BEtrFnullEtwF1146163546EatF1479585193052EwmlFDfolderFA2inboxA2Ethread_5fidFA2thread_3a1127396163964738A2CG479585193989CEchFDp_5f1B14262394138F14CC; p=-2", 
+"cookie": "datr=ur7xVysz10aPNLg-GNF-pzQW; sb=9qEqWAyh9cOPQoyCW7z2iAZ8; pl=n; lu=ggUtnl5ELav9__4E9jywIqBg; c_user=100014262394138; xs=25%3ACCs_fSuEIqKUTQ%3A2%3A1479399287%3A10124; fr=0YEDN2KhNtV8svjFc.AWUs_-VgixY7AzfM7KkwssOP0ak.BX8b66.mw.AAA.0.0.BYN2a_.AWVIPusW; csm=2; s=Aa7ow7DXSoUvaYoU.BYLdd3; p=-2; act=1480029271860%2F4; presence=EDvF3EtimeF1480029307EuserFA21B14262394138A2EstateFDsb2F1480028616862Et2F_5bDiFA2thread_3a1150546131643551A2EsiFA21150546131643551A2ErF1C_5dElm2FnullEuct2F1480020178394EtrFA2loadA2EtwF1335759719EatF1480029306319EwmlFDfolderFA2inboxA2Ethread_5fidFA2thread_3a1150546131643551A2CG480029307396CEchFDp_5f1B14262394138F99CC", 
 "pragma": "no-cache", 
 "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.122 Safari/537.36", 
 "content-type": "application/x-www-form-urlencoded", 
@@ -42,16 +32,16 @@ headers = {"origin": "https://www.facebook.com",
 "cache-control": "no-cache", 
 "referer": "https://www.facebook.com/messages/zuck"}
 
-def download_latest_msgs(num_msgs, chat_id):
+def fetch_msgs(chat_id, nums):
 	data_text = {"messages[thread_fbids][" + str(chat_id) + "][offset]": str(0), 
-	"messages[thread_fbids][" + str(chat_id) + "][limit]": str(num_msgs), 
+	"messages[thread_fbids][" + str(chat_id) + "][limit]": str(nums), 
 	"client": "web_messenger", 
 	"__user": "100014262394138", 
 	"__a": "1", 
-	"__dyn": "7AmajEzUGByAZ112u6W85k2mq2WiWF7By8Z9LFwxBxCbzEeAq2i5U4e2CEaUgxebkwy3eF8W49XDG4XzFE8oiyUpwGDwPKq4GCzEkxu9AzUO5onwnoCium8yUgx66EK3Ou49LZ1HgkBx-2jAyEhzE-49oG9z8", 
-	"__req": "b", 
-	"fb_dtsg": "AQG2rPllBmy9:AQGsRBIIX79s", 
-	"ttstamp": "2658171501148010810866109121575865817111582667373885557115", 
+	"__dyn": "7AgNeCjyGgNfgggDxKA5Q2mq2WiWKum8zXrWo461lDwAxu13wm8gxZoK3eE99XyEjKewExW6oaFUcXCxmqewIyo8obo5S9ADxG48hwCwYDx2q-EsgkBx-2qi78WfwHz8C", 
+	"__req": "3", 
+	"fb_dtsg": "AQEkIFWxOpdc:AQGUzTLprJOF", 
+	"ttstamp": "2658169107737087120791121009958658171851228476112114747970", 
 	"__rev": "2693755"}
 	data = urllib.urlencode(data_text)
 	url = "https://www.facebook.com/ajax/mercury/thread_info.php"
@@ -65,9 +55,21 @@ def download_latest_msgs(num_msgs, chat_id):
 	messages_data = decompressedFile.read()
 	messages_data = messages_data[9:]
 
-	# print(messages_data)
-
 	return messages_data
+
+
+def download_latest_msgs(num_msgs, chat_id):
+	batch_size = 30
+
+	msgs = None
+	for i in range(0, int(math.ceil(num_msgs / 30.0))):
+		new_data = json.loads(fetch_msgs(chat_id, batch_size))
+		if msgs is None:
+			msgs = new_data
+		else:
+			msgs['payload']['actions'].append(new_data['payload']['actions'])
+
+	return json.dumps(msgs)
 
 def get_user_name(user_id, token):
 	graph_url = "https://graph.facebook.com/"
@@ -119,10 +121,10 @@ def compress_msg(msg, group_id):
 
 	# Custom data
 	zip_msg['score'] = 0.0
-	zip_msg['likes'] = 0
-	zip_msg['unlikes'] = 0
-	zip_msg['dislikes'] = 0
-	zip_msg['bookmarks'] = 0
+	zip_msg['likes'] = []
+	# zip_msg['unlikes'] = []
+	zip_msg['dislikes'] = []
+	zip_msg['bookmarks'] = []
 
 	return zip_msg
 
@@ -170,8 +172,8 @@ if __name__ == '__main__':
 	# Smartest People in Canada = 1127396163964738
 	# Pronto, George, Brenton = 1065671046884259
 
-	# group_id = '1150546131643551'
-	group_id = '1127396163964738'
+	group_id = '1150546131643551'
+	# group_id = '1127396163964738'
 	# group_id = '1065671046884259'
 
 	db_msgs = couch['messages']
@@ -181,33 +183,37 @@ if __name__ == '__main__':
 
 	print('Starting...')
 	while True:
-		oldest_updated = float('inf')
-		new_msgs = []
-		while oldest_updated > newest_time:
-			print('Getting new messages...')
-			new_data = download_latest_msgs(max_msgs, group_id)
-			# print(new_data)
+		try:
+			oldest_updated = float('inf')
+			new_msgs = []
+			while oldest_updated > newest_time:
+				print('Getting new messages...')
+				new_data = download_latest_msgs(max_msgs, group_id)
+				print(new_data)
 
-			new_msgs = extract_msgs(new_data, group_id)
-			new_msgs.extend(get_messages_since(new_msgs, newest_time))
+				new_msgs = extract_msgs(new_data, group_id)
+				new_msgs.extend(get_messages_since(new_msgs, newest_time))
+				# print(new_msgs)
 
+				if len(new_msgs) > 0:
+					oldest_updated = find_oldest_msg(new_msgs)
+
+			# Ignore the messages already downloaded
+			new_msgs = get_messages_since(new_msgs, newest_time)
+
+			for x in new_msgs:
+				try:
+					user_name = get_user_name(x['author_id'], app_key)
+					print(u'[{}]: {}'.format(user_name, x['text']))
+				except Exception as e:
+					print('Error: {}'.format(e))
+
+			# If any new messages come in, update the newest timestamp
 			if len(new_msgs) > 0:
-				oldest_updated = find_oldest_msg(new_msgs)
+				newest_time = get_newest_msg(new_msgs)
 
-		# Ignore the messages already downloaded
-		new_msgs = get_messages_since(new_msgs, newest_time)
+			save_msgs(db_msgs, new_msgs)
 
-		for x in new_msgs:
-			try:
-				user_name = get_user_name(x['author_id'], app_key)
-				print(u'[{}]: {}'.format(user_name, x['text']))
-			except Exception as e:
-				print('Error: {}'.format(e))
-
-		# If any new messages come in, update the newest timestamp
-		if len(new_msgs) > 0:
-			newest_time = get_newest_msg(new_msgs)
-
-		save_msgs(db_msgs, new_msgs)
-
-		time.sleep(1)
+			time.sleep(1)
+		except Exception as e:
+			print('Error: ' + str(e))
