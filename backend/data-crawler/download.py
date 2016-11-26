@@ -9,19 +9,9 @@ import StringIO
 import requests
 import time
 import couchdb
-
-__author__ = "Raghav Sood"
-__copyright__ = "Copyright 2014"
-__credits__ = ["Raghav Sood"]
-__license__ = "CC"
-__version__ = "1.0"
-__maintainer__ = "Raghav Sood"
-__email__ = "raghavsood@appaholics.in"
-__status__ = "Production"
-
+import math
 
 couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
-
 
 app_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
@@ -42,9 +32,9 @@ headers = {"origin": "https://www.facebook.com",
 "cache-control": "no-cache", 
 "referer": "https://www.facebook.com/messages/zuck"}
 
-def download_latest_msgs(num_msgs, chat_id):
+def fetch_msgs(chat_id, nums):
 	data_text = {"messages[thread_fbids][" + str(chat_id) + "][offset]": str(0), 
-	"messages[thread_fbids][" + str(chat_id) + "][limit]": str(num_msgs), 
+	"messages[thread_fbids][" + str(chat_id) + "][limit]": str(nums), 
 	"client": "web_messenger", 
 	"__user": "100014262394138", 
 	"__a": "1", 
@@ -65,9 +55,21 @@ def download_latest_msgs(num_msgs, chat_id):
 	messages_data = decompressedFile.read()
 	messages_data = messages_data[9:]
 
-	# print(messages_data)
-
 	return messages_data
+
+
+def download_latest_msgs(num_msgs, chat_id):
+	batch_size = 30
+
+	msgs = None
+	for i in range(0, int(math.ceil(num_msgs / 30.0))):
+		new_data = json.loads(fetch_msgs(chat_id, batch_size))
+		if msgs is None:
+			msgs = new_data
+		else:
+			msgs['payload']['actions'].append(new_data['payload']['actions'])
+
+	return json.dumps(msgs)
 
 def get_user_name(user_id, token):
 	graph_url = "https://graph.facebook.com/"
@@ -187,7 +189,7 @@ if __name__ == '__main__':
 			while oldest_updated > newest_time:
 				print('Getting new messages...')
 				new_data = download_latest_msgs(max_msgs, group_id)
-				# print(new_data)
+				print(new_data)
 
 				new_msgs = extract_msgs(new_data, group_id)
 				new_msgs.extend(get_messages_since(new_msgs, newest_time))

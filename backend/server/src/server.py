@@ -294,7 +294,8 @@ def search_msgs():
             return jsonify(response)
 
         # Check if the user is in the group
-        if group_id not in get_user_groups(user_id_to_app_id(fb_id)):
+        print(get_user_groups(user_id_to_app_id(fb_id)))
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
@@ -317,12 +318,18 @@ def search_msgs():
         for msg in msgs:
             # for key in keywords:
             # print(msg['text'])
+            if 'score' not in msg:
+                msgs.remove(msg)
+                continue
+
             msg['score'] += int(msg['text'].count(keyword))
             # if msg['score'] > 0:
                 # print(msg)
 
+        print(msgs)
+
         # Sort the msgs in descending order
-        msgs = sorted(msgs, key=lambda msg: msg['score'], reverse=True)
+        msgs = sorted(msgs, key=lambda msg: msg.get('score', -10), reverse=True)
         msgs = msgs[:max_messages]
         # print(msgs)
 
@@ -331,6 +338,7 @@ def search_msgs():
         return jsonify(msgs)
 
     except Exception as e:
+        raise e
         return 'Invalid Parameters'
         # raise e
 
