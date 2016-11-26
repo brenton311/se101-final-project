@@ -62,14 +62,12 @@ public class ChatFragment extends Fragment {
                         .build();
 
                 //MessageDialog.show(getActivity(), content);
-                
-              //  SendButton sendButton = new SendButton(getActivity());
-               // sendButton.setShareContent(shareContent);
+
+                //  SendButton sendButton = new SendButton(getActivity());
+                // sendButton.setShareContent(shareContent);
                 //sendButton.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() { ... });
             }
         });
-
-        // Inflate the layout for this fragment
     }
 
 }
