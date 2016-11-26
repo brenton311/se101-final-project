@@ -30,7 +30,7 @@ import static bolts.Task.delay;
 
 public class NetworkingUtility {
 
-    public static String url = "http://www.prontoai.com:5000";
+    public static String url = "http://www.prontoai.com";
     public static RequestQueue queue;
     public static String response;
     //Todo: make private; use getters
@@ -104,7 +104,7 @@ public class NetworkingUtility {
         queue.add(req);
     }
 
-    public static String get(final String urlEnd, final String[] keys, final String[] values) {
+    /*public static String get(final String urlEnd, final String[] keys, final String[] values) {
         response= "ERROR";//if not rewriiten, will send back "ERROR"
 
         StringBuilder stringBuilder = new StringBuilder(url);
@@ -167,7 +167,7 @@ public class NetworkingUtility {
         // Add the request to the RequestQueue.
         queue.add(req);
         return response;
-    }
+    }*/
 
 
   /*  public static String get(final String urlEnd, final String[] keys, final String[] values) {
@@ -204,7 +204,7 @@ public class NetworkingUtility {
         return response;
     }
 */
-    public static void post(final String urlEnd, final String key, final String msg) {
+    public static void post(final String urlEnd, final String[] keys, final String[] values) {
         // Request a string response from the provided URL.
         String newUrl = url + urlEnd;
 
@@ -223,7 +223,9 @@ public class NetworkingUtility {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put(key, msg);
+                for (int i =0; i<keys.length;i++ ) {
+                    params.put(keys[i], values[i]);
+                }
                 return params;
             }
 

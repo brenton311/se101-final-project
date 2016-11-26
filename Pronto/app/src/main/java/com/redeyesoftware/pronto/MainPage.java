@@ -25,7 +25,7 @@ public class MainPage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        NetworkingUtility.setUpRequestQueue(this);//must be before login becuase login posts token
+        NetworkingUtility.setUpRequestQueue(this);//must be before login because login posts token
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
