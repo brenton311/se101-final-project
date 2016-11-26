@@ -381,10 +381,8 @@ def get_msgs():
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
-        msgs = [m.value for m in gen]
-        for m in msgs:
-            if user_id_to_app_id(fb_id) in m['dislikes']:
-                msgs.remove(m)
+        msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+        print(msgs)
         msgs = id_to_name(msgs)
 
         return jsonify(msgs)
