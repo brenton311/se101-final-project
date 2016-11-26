@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.EditText;
@@ -41,52 +42,44 @@ public class BluetoothActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*setContentView(R.layout.main);
+        setContentView(R.layout.activity_bluetooth);
 
-        Button openButton = (Button)findViewById(R.id.open);
+        //Button openButton = (Button)findViewById(R.id.open);
         Button sendButton = (Button)findViewById(R.id.send);
-        Button closeButton = (Button)findViewById(R.id.close);
-        myLabel = (TextView)findViewById(R.id.label);
-        myTextbox = (EditText)findViewById(R.id.entry);
+        //Button closeButton = (Button)findViewById(R.id.close);
+        //myLabel = (TextView)findViewById(R.id.label);
+        //myTextbox = (EditText)findViewById(R.id.entry);
 
         //Open Button
-        openButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+       /*openButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {*/
                 try {
                     findBT();
                     openBT();
                 }
-                catch (IOException ex) { }
-            }
-        });
+                catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            /*}
+        });*/
 
         //Send Button
-        sendButton.setOnClickListener(new View.OnClickListener() {
+       sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
                     sendData();
                 }
-                catch (IOException ex) {
-                    showMessage("SEND FAILED");
+                catch (Exception ex) {
+                    showMessage("Bluetooth Connection Failed");
                 }
             }
         });
-
-        //Close button
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    closeBT();
-                }
-                catch (IOException ex) { }
-            }
-        });*/
     }
 
     void findBT() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(mBluetoothAdapter == null) {
-            myLabel.setText("No bluetooth adapter available");
+            Toast.makeText(this, "No bluetooth adapter available", Toast.LENGTH_SHORT).show();
         }
 
         if(!mBluetoothAdapter.isEnabled()) {
@@ -97,13 +90,14 @@ public class BluetoothActivity extends AppCompatActivity {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if(pairedDevices.size() > 0) {
             for(BluetoothDevice device : pairedDevices) {
-                if(device.getName().equals("FireFly-108B")) {
+                if(device.getName().equals("HC-05")) {
                     mmDevice = device;
+                    Toast.makeText(this, "Bluetooth Device Found", Toast.LENGTH_SHORT).show();
                     break;
                 }
             }
         }
-        myLabel.setText("Bluetooth Device Found");
+
     }
 
     void openBT() throws IOException {
@@ -113,7 +107,7 @@ public class BluetoothActivity extends AppCompatActivity {
         mmOutputStream = mmSocket.getOutputStream();
         mmInputStream = mmSocket.getInputStream();
         beginListenForData();
-        myLabel.setText("Bluetooth Opened");
+        Toast.makeText(this, "Bluetooth Opened", Toast.LENGTH_SHORT).show();
     }
 
     void beginListenForData() {
@@ -161,12 +155,10 @@ public class BluetoothActivity extends AppCompatActivity {
         workerThread.start();
     }
 
-    void sendData() throws IOException {
-        String msg = myTextbox.getText().toString();
+    void sendData() throws Exception {
+        String msg = "Yo";
         msg += "\n";
-        //mmOutputStream.write(msg.getBytes());
-        mmOutputStream.write('A');
-        myLabel.setText("Data Sent");
+        mmOutputStream.write(msg.getBytes());
     }
 
     void closeBT() throws IOException {
@@ -174,12 +166,19 @@ public class BluetoothActivity extends AppCompatActivity {
         mmOutputStream.close();
         mmInputStream.close();
         mmSocket.close();
-        myLabel.setText("Bluetooth Closed");
     }
 
     private void showMessage(String theMsg) {
-        Toast msg = Toast.makeText(getBaseContext(),
-                theMsg, (Toast.LENGTH_LONG));
+        Toast msg = Toast.makeText(getBaseContext(), theMsg, (Toast.LENGTH_SHORT));
         msg.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            closeBT();
+        }
+        catch (IOException ex) { }
     }
 }
