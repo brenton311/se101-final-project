@@ -131,8 +131,8 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         }
 
         TextView numBookmarks =  ((TextView)(findViewById(R.id.numBookmarks)));
-        numLikes.setText("" + bookmarks);
-        if (iLiked) {
+        numBookmarks.setText("" + bookmarks);
+        if (iBookmarked) {
             numBookmarks.setTextColor(getResources().getColor(R.color.liked));
             numBookmarks.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
         }
