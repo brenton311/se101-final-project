@@ -135,15 +135,16 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    # Check if the user is in the group
-    if group_id not in get_user_groups(fb_id):
-        response['status'] = 'error'
-        response['error-msg'] = 'You are not in the group!'
-        return jsonify(response)
-    
-
     db = couch['messages']
     msg = db[msg_id]
+    group_id = msg['group_id']
+    print(msg_id)
+
+    # Check if the user is in the group
+    # if group_id not in get_user_groups(fb_id):
+    #     response['status'] = 'error'
+    #     response['error-msg'] = 'You are not in the group!'
+    #     return jsonify(response)
 
     # Make sure the user is in the group where the message 
     # is published
@@ -174,7 +175,7 @@ def like_msg():
         response['error-msg'] = 'Not in group!'
         return jsonify(response)
 
-@application.route('/msg/dislikes/', methods=['POST'])
+@application.route('/msg/dislike/', methods=['POST'])
 def dislike_msg():
     msg_id = request.form.get('msg_id', '')
     access_token = request.form.get('access_token', None)
@@ -188,10 +189,10 @@ def dislike_msg():
         return jsonify(response)
 
     # Check if the user is in the group
-    if fb_id not in get_user_groups(fb_id):
-        response['status'] = 'error'
-        response['error-msg'] = 'You are not in the group!'
-        return jsonify(response)
+    # if fb_id not in get_user_groups(fb_id):
+    #     response['status'] = 'error'
+    #     response['error-msg'] = 'You are not in the group!'
+    #     return jsonify(response)
     
 
     db = couch['messages']
@@ -294,13 +295,14 @@ def search_msgs():
             return jsonify(response)
 
         # Check if the user is in the group
-        if group_id not in get_user_groups(user_id_to_app_id(fb_id)):
+        print(get_user_groups(user_id_to_app_id(fb_id)))
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
 
         # Limit the number of returned messages per queue
-        max_messages = min(max_messages, 30)
+        max_messages = min(max_messages, 100)
         db = couch['messages']
 
         # If no starting message is provided, start with the newest
@@ -317,12 +319,18 @@ def search_msgs():
         for msg in msgs:
             # for key in keywords:
             # print(msg['text'])
+            if 'score' not in msg:
+                msgs.remove(msg)
+                continue
+
             msg['score'] += int(msg['text'].count(keyword))
             # if msg['score'] > 0:
                 # print(msg)
 
+        print(msgs)
+
         # Sort the msgs in descending order
-        msgs = sorted(msgs, key=lambda msg: msg['score'], reverse=True)
+        msgs = sorted(msgs, key=lambda msg: msg.get('score', -10), reverse=True)
         msgs = msgs[:max_messages]
         # print(msgs)
 
@@ -331,6 +339,7 @@ def search_msgs():
         return jsonify(msgs)
 
     except Exception as e:
+        raise e
         return 'Invalid Parameters'
         # raise e
 
@@ -344,7 +353,7 @@ def get_msgs():
         start_msg = request.args.get('start', None)
 
         # Limit the number of returned messages per queue
-        max_messages = min(max_messages, 30)
+        max_messages = min(max_messages, 100)
         db = couch['messages']
 
         response = {'status': 'ok'}    
@@ -366,12 +375,14 @@ def get_msgs():
             return jsonify(response)
 
         # If no starting message is provided, start with the newest
+        # TODO: Add check for specific group
         gen = None
         if start_msg is not None:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
             gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
-        msgs = [m.value for m in gen]
+        msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+        print(msgs)
         msgs = id_to_name(msgs)
 
         return jsonify(msgs)
