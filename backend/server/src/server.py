@@ -135,15 +135,16 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    # Check if the user is in the group
-    if group_id not in get_user_groups(fb_id):
-        response['status'] = 'error'
-        response['error-msg'] = 'You are not in the group!'
-        return jsonify(response)
-    
-
     db = couch['messages']
     msg = db[msg_id]
+    group_id = msg['group_id']
+    print(msg_id)
+
+    # Check if the user is in the group
+    # if group_id not in get_user_groups(fb_id):
+    #     response['status'] = 'error'
+    #     response['error-msg'] = 'You are not in the group!'
+    #     return jsonify(response)
 
     # Make sure the user is in the group where the message 
     # is published
