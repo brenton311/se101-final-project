@@ -175,7 +175,28 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
         ((ImageButton) findViewById(R.id.bookmarkBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                SharedPreferences prefs = parentActivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+                String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+                NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,messageID});
+                TextView numBookmarks =  ((TextView)(findViewById(R.id.numLikes)));
+                if (iBookmarked) {
+                    iBookmarked = false;
+                    bookmarks--;
+                    numBookmarks.setText("" + bookmarks);
+                    numBookmarks.setTextColor(getResources().getColor(R.color.offWhite));
+                    numBookmarks.setTypeface(null, Typeface.NORMAL);
+                    updateBookmarks(true);
+                    if (commentIsBookmark) {
+                        BookmarksFragment.removeCommentFromFeed(((LinearLayout)Comment.this.getParent()).indexOfChild(Comment.this));
+                    }
+                } else {
+                    iBookmarked = true;
+                    bookmarks++;
+                    numBookmarks.setText("" + bookmarks);
+                    numBookmarks.setTextColor(getResources().getColor(R.color.liked));
+                    numBookmarks.setTypeface(null, Typeface.BOLD);
+                    updateBookmarks(false);
+                }
             }
         });
 
@@ -235,7 +256,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
             e.printStackTrace();
         }
 
-        Log.d("Debug", "Bookmark successfully added");
+        Log.d("Debug", "Bookmark successfully added/deleted");
     }
 
    /* @Override
@@ -265,7 +286,8 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 if (event.getX() - historicX < -DELTA) {
                     return true;
                 } else if (event.getX() - historicX > DELTA) {
-                    remove();
+                    if (!commentIsBookmark)
+                        remove();
                     return true;
 
                 }
