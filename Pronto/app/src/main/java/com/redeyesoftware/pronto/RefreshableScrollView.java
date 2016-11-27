@@ -23,10 +23,12 @@ import static android.content.Context.MODE_PRIVATE;
 public class RefreshableScrollView extends ScrollView implements View.OnTouchListener {
 
     private static RefreshableScrollView me;
-    private float startY = 10000f, lastY = 10000f;
-    private int dragLength = 0, topMargin = 0;
+    private float startY = -1, lastY = -1;
+    private final int dragLength = 300;//min length of drag to reload
+    private final int topMargin = 400;//top margin of progress
+    private final int dragOffset = 200;//amount of pixels list moves down
     private boolean refreshing = false;
-    private ProgressBar progress;;
+    private ProgressBar progress;
     private RelativeLayout content_rel_layout;
     private LinearLayout linear;
     private Context parentAcivity;
@@ -98,7 +100,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
-        NetworkingUtility.getComments("/inbox/main/", token, 30, "1150546131643551", "fillFeed", new String[]{
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillFeed", new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
         });
         me.linear.removeAllViews();
@@ -119,45 +121,73 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         ScrollView scroll = (ScrollView) v;
-        if (scroll.getScrollY() == 0) {
+        if (scroll.getScrollY() == 0) {//if at top of screen
+            Log.i("Touch action", ""+event.getAction());
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                    Log.i("Touch action", "down");
                     startY = event.getY();
                     lastY = startY;
                     break;
                 case MotionEvent.ACTION_MOVE:
+                    Log.i("Touch action", "move");
+                    if (startY == -1) {
+                        //ACTION_DOWN Doesnt seem to be called when comments fill screen (when not in testable mode)
+                        //so had to implement this if block and reset startY to -1 ater drag finished
+                        startY = event.getY();
+                        lastY = startY;
+                        break;
+                    }
                     if (!refreshing && event.getY() > lastY) {
                         lastY = event.getY();
+                        Log.i("Drag length", ""+(event.getY() - startY));
                         if (event.getY() - startY <= dragLength) {
-                            double percent = 1 - (event.getY() - startY) / dragLength;
+                            double percent = (event.getY() - startY) / dragLength;
                             double weight;
-                            weight = 2 * Math.pow(percent, 0.8);
+                            /*weight = 2 * Math.pow(percent, 0.8);
                             LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
                             params.weight = (float) weight;
                             progress.setLayoutParams(params);
                             progress.setIndeterminate(false);
-                            progress.setPadding(0, 0, 0, 0);
+                            progress.setPadding(0, 0, 0, 0);*/
+
+                            RelativeLayout.LayoutParams linearParams = (RelativeLayout.LayoutParams) linear.getLayoutParams();
+                            linearParams.topMargin = (int)(percent*dragOffset);
+                            linear.setLayoutParams(linearParams);
+
                             return true;
                         } else {
                             refreshing = true;
 
                             refresh();
 
-                            startY = 100000f;
+                            startY = -1;
+                            //show loading in middle
                             LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
                             params.weight = 0;
                             progress.setIndeterminate(true);
                             progress.postInvalidate();
                             progress.setLayoutParams(params);
+
+                            RelativeLayout.LayoutParams linearParams = (RelativeLayout.LayoutParams) linear.getLayoutParams();
+                            linearParams.topMargin = 0;
+                            linear.setLayoutParams(linearParams);
                         }
                     }
+                    break;
                 case MotionEvent.ACTION_UP:
-                    startY = 100000f;
+                    //Log.i("Touch action", "up");
+                    //if finger up and not refreshing, hide load and reset linear height
+                    startY = -1;
                     if (!refreshing) {
                         Log.i("Debug", "action up " + event.getY());
                         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
                         params.weight = 2;
                         progress.setLayoutParams(params);
+
+                        RelativeLayout.LayoutParams linearParams = (RelativeLayout.LayoutParams) linear.getLayoutParams();
+                        linearParams.topMargin = 0;
+                        linear.setLayoutParams(linearParams);
                     }
             }
         }
@@ -170,12 +200,14 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
         params.weight = 2;
         progress.setLayoutParams(params);
+
+        RelativeLayout.LayoutParams linearParams = (RelativeLayout.LayoutParams) linear.getLayoutParams();
+        linearParams.topMargin = 0;
+        linear.setLayoutParams(linearParams);
         refreshing = false;
     }
 
     private void createProgressBarLayout() {
-        topMargin = 400;//height of progress from top
-        dragLength = 100;//Math.round(act.screen_size.y / 2.5f);
 
         LinearLayout top = new LinearLayout(parentAcivity);
         top.setGravity(Gravity.TOP);
@@ -192,7 +224,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         progress.setProgress(100);
         progress.setIndeterminate(false);
         //In indeterminate mode, the progress bar shows a cyclic animation without an indication of progress.
-        progress.getIndeterminateDrawable().setColorFilter(0xFFFF0000,android.graphics.PorterDuff.Mode.MULTIPLY);
+        progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary),android.graphics.PorterDuff.Mode.MULTIPLY);
         // progress.setBackgroundResource(R.drawable.progress_bar);
         FrameLayout right = new FrameLayout(parentAcivity);
 
@@ -208,7 +240,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         left.setLayoutParams(leftParams);
 
         LinearLayout.LayoutParams progressParams = (LinearLayout.LayoutParams) progress.getLayoutParams();
-        progressParams.weight = 2;
+        progressParams.weight = 0;
         progressParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         progressParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         progressParams.topMargin = topMargin;

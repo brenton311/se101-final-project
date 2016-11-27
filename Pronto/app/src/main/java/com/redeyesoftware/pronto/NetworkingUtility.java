@@ -30,7 +30,7 @@ import static bolts.Task.delay;
 
 public class NetworkingUtility {
 
-    public static String url = "http://www.prontoai.com:5000";
+    public static String url = "http://www.prontoai.com";
     public static RequestQueue queue;
     public static String response;
     //Todo: make private; use getters
@@ -48,13 +48,13 @@ public class NetworkingUtility {
         }
     }
 
-    public static void getComments(final String urlEnd, final String token, final int max_messages, final String group_id, final String methodKey, final String[] tags) {
-        comments = new String[max_messages][tags.length];//if not rewriiten, will send back empty array
+    public static void getComments(final String urlEnd, final String token, final int max_messages, final int min_messages, final String group_id, final String methodKey, final String[] tags) {
+        comments = null;//if not rewritten, will send back empty array
 
         //Todo: consider when get less than max_messages
         String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
 
-        Log.d("Sending to this url", newUrl);
+        //Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
         JsonArrayRequest req = new JsonArrayRequest(newUrl,
                 new Response.Listener<JSONArray>() {
@@ -62,7 +62,8 @@ public class NetworkingUtility {
                     public void onResponse(JSONArray response) {
                         //Log.d("The JSON was:", response.toString());
                         //changed to below b/c messages exceed max length of roughly 4000 chars
-                        if (response.toString().length() > 4000) {
+
+                        /*if (response.toString().length() > 4000) {
                             int chunkCount = response.length() / 4000;     // integer division
                             for (int i = 0; i <= chunkCount+1; i++) {
                                 int max = 4000 * (i + 1);
@@ -74,19 +75,24 @@ public class NetworkingUtility {
                             }
                         } else {
                             Log.v("The JSON was:", response.toString());
-                        }
+                        }*/
 
                         try {
-                            // Parsing json array response, loop through each json object
-                            for (int i = 0; i < response.length(); i++) {
-                                JSONObject person = (JSONObject) response.get(i);
-
-                                JSONObject comment = response.getJSONObject(i);
-                                for (int j=0; j<tags.length;j++) {
-                                    comments[i][j] =  comment.getString(tags[j]);
+                            if (max_messages >= 60 || response.length()>= min_messages) {
+                                comments = new String[response.length()][tags.length];
+                                // Parsing json array response, loop through each json object
+                                for (int i = 0; i < response.length(); i++) {
+                                    JSONObject comment = response.getJSONObject(i);
+                                    for (int j = 0; j < tags.length; j++) {
+                                        comments[i][j] = comment.getString(tags[j]);
+                                    }
                                 }
+                                callMethodOnFinished(methodKey);
+                            } else {
+                                //keeps asking for 10 more until a maximum max of 60
+                                getComments(urlEnd, token, max_messages+10, min_messages, group_id, methodKey, tags);
+                                Log.d("Debug","Not enough nondeleted messages.. asked for " + max_messages + " got " + response.length() + " ... asking for " + (max_messages+10)+ " now");
                             }
-                            callMethodOnFinished(methodKey);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -96,7 +102,7 @@ public class NetworkingUtility {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("Debug", "That didn't work!");
+                Log.d("Debug", "Error with Volley Get");
             }
         });
 
@@ -104,7 +110,7 @@ public class NetworkingUtility {
         queue.add(req);
     }
 
-    public static String get(final String urlEnd, final String[] keys, final String[] values) {
+    /*public static String get(final String urlEnd, final String[] keys, final String[] values) {
         response= "ERROR";//if not rewriiten, will send back "ERROR"
 
         StringBuilder stringBuilder = new StringBuilder(url);
@@ -160,51 +166,17 @@ public class NetworkingUtility {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("Debug", "That didn't work!");
+                Log.d("Debug", "Error with Volley Get");
             }
         });
 
         // Add the request to the RequestQueue.
         queue.add(req);
         return response;
-    }
+    }*/
 
 
-  /*  public static String get(final String urlEnd, final String[] keys, final String[] values) {
-        response= "ERROR";//if not rewriiten, will send back "ERROR"
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url+urlEnd,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        NetworkingUtility.response = response.substring(0, 500);
-                        Log.d("Debug", "Response is: " + response.substring(0, 500));
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Debug", "That didn't work!");
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<String, String>();
-                for (int i =0; i<keys.length;i++ ) {
-                    params.put(keys[i], values[i]);
-                }
-                return params;
-            }
-
-            ;
-
-        };
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);
-        return response;
-    }
-*/
-    public static void post(final String urlEnd, final String key, final String msg) {
+    public static void post(final String urlEnd, final String[] keys, final String[] values) {
         // Request a string response from the provided URL.
         String newUrl = url + urlEnd;
 
@@ -217,13 +189,15 @@ public class NetworkingUtility {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("Debug", "That didn't work!");
+                Log.d("Debug", "Error with Volley Post");
             }
         }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put(key, msg);
+                for (int i =0; i<keys.length;i++ ) {
+                    params.put(keys[i], values[i]);
+                }
                 return params;
             }
 

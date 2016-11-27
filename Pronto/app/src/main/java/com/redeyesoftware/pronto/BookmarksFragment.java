@@ -92,8 +92,8 @@ public class BookmarksFragment extends Fragment {
         linear = new LinearLayout(getActivity());
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         linear.setOrientation(LinearLayout.VERTICAL);//needed to explicitly say this for it to work
-        for (int i=0; i<bookmarkList.size(); i++) {
-            //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks
+        for (int i=bookmarkList.size()-1; i>=0; i--) {
+            //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark
             Comment cmt = new Comment(
                     me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
                     bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks(), true, true
@@ -109,8 +109,7 @@ public class BookmarksFragment extends Fragment {
         return fragmentContent;
     }
 
-    //Todo: change to bookmarks
-    public static void removeCommentFromFeed(final int index) {
+    public static void removeCommentFromBookmarks(final int index) {
         if (index<0||index >= me.linear.getChildCount()) {
             Log.d("ERROR", "Tried to delete element at invalid index");
             return;
@@ -123,86 +122,6 @@ public class BookmarksFragment extends Fragment {
         });
     }
 
-
-    private void setUpSwipeToDelete() {
-        Log.d("Debug","func called");
-        linear.setOnTouchListener(new View.OnTouchListener() {
-
-            float historicX = Float.NaN, historicY = Float.NaN;
-            static final int DELTA = 50;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                Log.d("Debug","xpos: "+event.getX());
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        historicX = event.getX();
-                        historicY = event.getY();
-                        Log.d("Debug","xpos: "+event.getX());
-                        return false;
-
-                    case MotionEvent.ACTION_UP:
-                        if (linear.getChildAt(0) != null) {
-                            int heightOfEachItem = linear.getChildAt(0).getHeight();
-                            int heightOfFirstItem = linear.getChildAt(0).getTop();
-                            //IF YOU HAVE CHILDS IN LIST VIEW YOU START COUNTING
-                            //listView.getChildAt(0).getTop() will see top of child showed in screen
-                            //Dividing by height of view, you get how many views are not in the screen
-                            //It needs to be Math.ceil in this case because it sometimes only shows part of last view
-                            final int firstPosition = (int) Math.ceil(heightOfFirstItem / heightOfEachItem); // This is the same as child #0
-
-                            //Here you get your List position, use historic Y to get where the user went first
-                            final int wantedPosition = (int) Math.floor((historicY - linear.getChildAt(0).getTop()) / heightOfEachItem) + firstPosition;
-
-                            Log.d("Debug","first pos: "+firstPosition + " second pos: "+wantedPosition);
-
-                            //Here you get the actually position in the screen
-                            final int wantedChild = wantedPosition - firstPosition;
-                            //Depending on delta, go right or left
-                            if (event.getX() - historicX < -DELTA) {
-                                return true;
-                            } else if (event.getX() - historicX > DELTA) {
-                                //If something went wrong, we stop it now
-                                if (wantedChild < 0 || wantedChild >= linear.getChildCount()) {
-
-                                    return true;
-                                }
-                                //Start animation with 500 miliseconds of time
-                                linear.getChildAt(wantedChild).startAnimation(outToRightAnimation(500));
-                                //after 500 miliseconds remove from List the item and update the adapter.
-                                new java.util.Timer().schedule(
-                                        new java.util.TimerTask() {
-                                            @Override
-                                            public void run() {
-                                                linear.removeView(linear.getChildAt(wantedChild));
-                                            }
-                                        },
-                                        500
-                                );
-                                return true;
-
-                            }
-                        }
-                        return true;
-                    default:
-                        return false;
-
-                }
-            }
-
-            private Animation outToRightAnimation(int duration) {
-                Animation outtoRight = new TranslateAnimation(
-                        Animation.RELATIVE_TO_PARENT, 0.0f,
-                        Animation.RELATIVE_TO_PARENT, +1.0f,
-                        Animation.RELATIVE_TO_PARENT, 0.0f,
-                        Animation.RELATIVE_TO_PARENT, 0.0f);
-                outtoRight.setDuration(duration);
-                outtoRight.setInterpolator(new AccelerateInterpolator());
-                return outtoRight;
-            }
-
-        });
-    }
 
 
 }

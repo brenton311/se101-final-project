@@ -17,6 +17,7 @@ import android.view.animation.AccelerateInterpolator;
 
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 
 
 public class MainPage extends AppCompatActivity {
@@ -25,7 +26,7 @@ public class MainPage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        NetworkingUtility.setUpRequestQueue(this);//must be before login becuase login posts token
+        NetworkingUtility.setUpRequestQueue(this);//must be before login because login posts token
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
@@ -46,11 +47,19 @@ public class MainPage extends AppCompatActivity {
 
 
 
-        HomePagesAdapter mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
+        final HomePagesAdapter mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
         ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageSelected(int index) {mFragPagerAdapter.notifyDataSetChanged();}
+            @Override
+            public void onPageScrolled(int arg0, float arg1, int arg2) {}
+            @Override
+            public void onPageScrollStateChanged(int arg0) {}
+        });
 
-        //the below would be necessary if tablayout was defined inside the view pager in the xml
+        //the below wouldnt be necessary if tablayout was defined inside the view pager in the xml
         //in this case, instead, it is part of the toolbar to create  cleaner app bar
         TabLayout tablayout = (TabLayout)findViewById(R.id.tab_layout);
         tablayout.setupWithViewPager(mViewPager);
@@ -115,6 +124,7 @@ public class MainPage extends AppCompatActivity {
     //define result of buttons on toolbar being pressed
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
         switch (item.getItemId()) {
             case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
@@ -126,13 +136,15 @@ public class MainPage extends AppCompatActivity {
                 return true;
 
             case R.id.action_tiva_mode:
-                Intent intent = new Intent(this, BluetoothActivity.class);
+                intent = new Intent(this, BluetoothActivity.class);
                 startActivity(intent);
                 return true;
 
             case R.id.action_logout:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
+                LoginActivity.logout();
+                intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
                 return true;
 
             default:
