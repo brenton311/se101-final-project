@@ -44,7 +44,33 @@ communication protocol).
 
 ### Backend Config
 ~~~~
-function (doc) {
-  emit(doc._id, {'author_id': doc.author_id, 'timestamp': doc.timestamp, 'text': doc.text});
+function(doc) {
+    if(doc.attachments.length >= 1)
+    {
+          emit(doc._id, {
+            'author_id': doc.author_id,
+            'timestamp': doc.timestamp,
+            'text': doc.text,
+            'msg_id': doc._id,
+            'likes': doc.likes,
+            'bookmarks': doc.bookmarks,
+            'dislikes': doc.dislikes,
+            'attachments': doc.attachments[0]['large_preview_url']
+        });
+    }
+    else
+    {
+          emit(doc._id, {
+        'author_id': doc.author_id,
+        'timestamp': doc.timestamp,
+        'text': doc.text,
+        'msg_id': doc._id,
+        'likes': doc.likes,
+        'bookmarks': doc.bookmarks,
+        'dislikes': doc.dislikes,
+        'attachments': ''
+    });
+    }
+
 }
 ~~~~

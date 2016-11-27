@@ -57,143 +57,147 @@ def download_latest_msgs(num_msgs, chat_id):
     return messages_data
 
 def get_user_name(user_id, token):
-	graph_url = "https://graph.facebook.com/"
-	r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
-	# print(r.text)
-	
-	json_data = json.loads(r.text)
+    graph_url = "https://graph.facebook.com/"
+    r = requests.get("{}{}".format(graph_url, user_id), params={"access_token": token})
+    # print(r.text)
+    
+    json_data = json.loads(r.text)
 
-	return json_data.get('name', 'Name not found!')
+    return json_data.get('name', 'Name not found!')
 
 def get_newest_msg(msgs):
-	base_newest = 0
-	# print(msgs)
-	for msg in msgs:
-		timestamp = int(msg['timestamp'])
-		if timestamp > base_newest:
-			base_newest = timestamp
+    base_newest = 0
+    # print(msgs)
+    for msg in msgs:
+        timestamp = int(msg['timestamp'])
+        if timestamp > base_newest:
+            base_newest = timestamp
 
-	return base_newest
+    return base_newest
 
 def find_oldest_msg(msgs):
-	base_newest = float('inf')
-	# print(msgs)
-	for msg in msgs:
-		timestamp = int(msg['timestamp'])
-		if timestamp < base_newest:
-			base_newest = timestamp
+    base_newest = float('inf')
+    # print(msgs)
+    for msg in msgs:
+        timestamp = int(msg['timestamp'])
+        if timestamp < base_newest:
+            base_newest = timestamp
 
-	return base_newest
+    return base_newest
 
 """
-	Extracts the useful fields from the msg dict
+    Extracts the useful fields from the msg dict
 """
 def compress_msg(msg, group_id):
-	zip_msg = {}
+    zip_msg = {}
 
-	# Facebook provided data
-	zip_msg['author_id'] = msg.get('author', '').split(':')
-	if len(zip_msg.get('author_id')) > 1:
-		zip_msg['author_id'] = zip_msg.get('author_id')[1]
-	else:
-		zip_msg['author_id'] = 'Error'
+    # Facebook provided data
+    zip_msg['author_id'] = msg.get('author', '').split(':')
+    if len(zip_msg.get('author_id')) > 1:
+        zip_msg['author_id'] = zip_msg.get('author_id')[1]
+    else:
+        zip_msg['author_id'] = 'Error'
 
-	zip_msg['timestamp'] = msg.get('timestamp', '')
-	zip_msg['attachments'] = msg.get('attachments', '')
-	# zip_msg['group_id'] = msg.get('thread_id', '')
-	zip_msg['group_id'] = group_id
-	zip_msg['text'] = msg.get('body', '')
+    zip_msg['timestamp'] = msg.get('timestamp', '')
+    zip_msg['attachments'] = msg.get('attachments', '')
+    # zip_msg['group_id'] = msg.get('thread_id', '')
+    zip_msg['group_id'] = group_id
+    zip_msg['text'] = msg.get('body', '')
 
-	# Custom data
-	zip_msg['score'] = 0.0
-	zip_msg['likes'] = []
-	zip_msg['dislikes'] = []
-	zip_msg['bookmarks'] = []
+    # Custom data
+    zip_msg['score'] = 0.0
+    zip_msg['likes'] = []
+    zip_msg['dislikes'] = []
+    zip_msg['bookmarks'] = []
 
-	return zip_msg
+    return zip_msg
 
 """
-	Takes in a FB json of messages, compress them, returns
-	messages in a list
+    Takes in a FB json of messages, compress them, returns
+    messages in a list
 """
 def extract_msgs(json_text, group_id):
-	msgs_json = json.loads(json_text)
-	msgs = []
+    msgs_json = json.loads(json_text)
+    msgs = []
 
-	for msg in msgs_json['payload']['actions']:
-		msgs.append(compress_msg(msg, group_id))
+    for msg in msgs_json['payload']['actions']:
+        msgs.append(compress_msg(msg, group_id))
 
-	return msgs
+    return msgs
 
 def get_messages_since(msgs, since_time):
-	new_msgs = []
+    new_msgs = []
 
-	for msg in msgs:
-		timestamp = int(msg['timestamp'])
-		if timestamp > since_time:
-			new_msgs.append(msg)
-			
-	return new_msgs
+    for msg in msgs:
+        timestamp = int(msg['timestamp'])
+        if timestamp > since_time:
+            new_msgs.append(msg)
+            
+    return new_msgs
 
 def save_msgs(db, msgs):
-	for msg in msgs:
-		db.save(msg)
+    for msg in msgs:
+        db.save(msg)
 
 def find_newest_msg(db):
-	base_newest = 0
-	for msg_doc in db:
-		msg = db[msg_doc]
-		# print(msg)
-		timestamp = int(msg.get('timestamp', 0))
-		if timestamp > base_newest:
-			base_newest = timestamp
+    base_newest = 0
+    for msg_doc in db:
+        msg = db[msg_doc]
+        # print(msg)
+        timestamp = int(msg.get('timestamp', 0))
+        if timestamp > base_newest:
+            base_newest = timestamp
 
-	return base_newest
+    return base_newest
 
 
 if __name__ == '__main__':
-	# SEXX'I = 1150546131643551
-	# Smartest People in Canada = 1127396163964738
-	# Pronto, George, Brenton = 1065671046884259
+    # SEXX'I = 1150546131643551
+    # Smartest People in Canada = 1127396163964738
+    # Pronto, George, Brenton = 1065671046884259
 
-	group_id = '1150546131643551'
-	# group_id = '1127396163964738'
-	# group_id = '1065671046884259'
+    group_id = '1150546131643551'
+    # group_id = '1127396163964738'
+    # group_id = '1065671046884259'
 
-	db_msgs = couch['msg_{}'.format(group_id)]
+    db_msgs = couch['msg_{}'.format(group_id)]
 
-	max_msgs = 30
-	newest_time = find_newest_msg(db_msgs)
+    max_msgs = 30
+    newest_time = find_newest_msg(db_msgs)
 
-	print('Starting...')
-	while True:
-		oldest_updated = float('inf')
-		new_msgs = []
-		while oldest_updated > newest_time:
-			print('Getting new messages...')
-			new_data = download_latest_msgs(max_msgs, group_id)
-			# print(new_data)
+    print('Starting...')
+    while True:
+        try:
+            oldest_updated = float('inf')
+            new_msgs = []
+            while oldest_updated > newest_time:
+                print('Getting new messages...')
+                new_data = download_latest_msgs(max_msgs, group_id)
+                # print(new_data)
 
-			new_msgs = extract_msgs(new_data, group_id)
-			new_msgs.extend(get_messages_since(new_msgs, newest_time))
+                new_msgs = extract_msgs(new_data, group_id)
+                new_msgs.extend(get_messages_since(new_msgs, newest_time))
 
-			if len(new_msgs) > 0:
-				oldest_updated = find_oldest_msg(new_msgs)
+                if len(new_msgs) > 0:
+                    oldest_updated = find_oldest_msg(new_msgs)
 
-		# Ignore the messages already downloaded
-		new_msgs = get_messages_since(new_msgs, newest_time)
+            # Ignore the messages already downloaded
+            new_msgs = get_messages_since(new_msgs, newest_time)
 
-		for x in new_msgs:
-			try:
-				user_name = get_user_name(x['author_id'], app_key)
-				print(u'[{}]: {}'.format(user_name, x['text']))
-			except Exception as e:
-				print('Error: {}'.format(e))
+        except Exception as e:
+            print(e)
 
-		# If any new messages come in, update the newest timestamp
-		if len(new_msgs) > 0:
-			newest_time = get_newest_msg(new_msgs)
+        for x in new_msgs:
+            try:
+                user_name = get_user_name(x['author_id'], app_key)
+                print(u'[{}]: {}'.format(user_name, x['text']))
+            except Exception as e:
+                print('Error: {}'.format(e))
 
-		save_msgs(db_msgs, new_msgs)
+            # If any new messages come in, update the newest timestamp
+            if len(new_msgs) > 0:
+                newest_time = get_newest_msg(new_msgs)
 
-time.sleep(1)
+            save_msgs(db_msgs, new_msgs)
+        
+        time.sleep(1)
