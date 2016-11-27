@@ -21,6 +21,10 @@ import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,29 +68,36 @@ public class BluetoothActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillTiva", new String[]{
-                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                "author_id", "msg_id", "text", "likes", "bookmarks"
         });
     }
 
     public static void sendCommentsToTiva() {
         try {
+            JSONArray jsonCommentArray = new JSONArray();
             for (int i = 0; i < NetworkingUtility.comments.length; i++) {
-                String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
-                boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
-                boolean iBookmarked = NetworkingUtility.comments[i][5].indexOf(LoginActivity.getId()) != -1;
-                int numLikes = NetworkingUtility.comments[i][4].length() - NetworkingUtility.comments[i][4].replace(",", "").length();
-                int numBookmarks = NetworkingUtility.comments[i][5].length() - NetworkingUtility.comments[i][5].replace(",", "").length();
-                if (numLikes > 0) numLikes++;
-                if (numBookmarks > 0) numBookmarks++;
-                if (numLikes == 0 && NetworkingUtility.comments[i][4].length() > 4) numLikes = 1;
-                if (numBookmarks == 0 && NetworkingUtility.comments[i][5].length() > 4)
-                    numBookmarks = 1;
-                //Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes, iLiked, numBookmarks, iBookmarked, false);
-                me.sendData(NetworkingUtility.comments[i][2]);
+                jsonCommentArray.put(createJSONforComment(i));
             }
+            me.sendData(jsonCommentArray.toString());
         } catch (Exception ex) {
             me.showMessage("Bluetooth Connection Failed");
         }
+    }
+
+    private static JSONObject createJSONforComment(int index) {
+        boolean iLiked = NetworkingUtility.comments[index][3].indexOf(LoginActivity.getId()) != -1;
+        boolean iBookmarked = NetworkingUtility.comments[index][4].indexOf(LoginActivity.getId()) != -1;
+        JSONObject comment = new JSONObject();
+        try {
+            comment.put("author_id", NetworkingUtility.comments[index][0]);
+            comment.put("msg_id", NetworkingUtility.comments[index][1]);
+            comment.put("text", NetworkingUtility.comments[index][2]);
+            comment.put("i_liked", (iLiked)?"true":"false");
+            comment.put("i_bookmarked", (iBookmarked)?"true":"false");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return comment;
     }
 
     void findBT() {

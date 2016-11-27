@@ -62,6 +62,7 @@ void setup()
     SwitchStates[i] = digitalRead(Switches[i]);
   }
 
+  OrbitOledClear();
   OrbitOledSetCursor(0, 0);
   OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
 }
@@ -79,19 +80,22 @@ int y = 0;
 
 void loop()
 {
-  
+
   if (Serial1.available())
   {
     msg = Serial1.readStringUntil('\n');
     Serial.println(msg);
 
-    if (msg.substring(0, 3) == "CMD:")
+    if (msg.substring(0, 4).equals("CMD:"))
     {
-      if (msg.substring(4) == "Finished")
+      if (msg.substring(4).equals("Finished"))
       {
         numMsgs = 0;
         msgReceiveIndex = 0;
         msgReadIndex = 0;
+        OrbitOledClear();
+        OrbitOledSetCursor(0, 0);
+        OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
       }
     }
     else
