@@ -11,8 +11,8 @@ if __name__ == '__main__':
     
     print('Extracting messages from messages to {}'.format(db_new.name))
 
-    gen = db_main.iterview('chats/getGroupMsgs', 100, limit=10, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
-    msgs = [db_main[m.key] for m in gen]
+    gen = db_new.iterview('chats/getGroupMsgs', 100, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+    msgs = [db_new[m.key] for m in gen]
     # print(msgs, len(msgs))
     # print(msgs[0].values())
     # print(msgs[0].copy())
@@ -20,11 +20,13 @@ if __name__ == '__main__':
     for m in msgs:
         if m['group_id'] == group_id:
             new_msg = m.copy()
-            
+
             # Remove the db specific values so the new db will order
             # it in the order they come in
             new_msg.pop('_id')
             new_msg.pop('_rev')
 
-            print(new_msg)
-            db_new.save(new_msg)
+            # print(new_msg)
+            # db_new.save(new_msg)
+        else:
+            print(m)

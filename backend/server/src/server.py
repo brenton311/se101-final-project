@@ -354,7 +354,7 @@ def get_msgs():
 
         # Limit the number of returned messages per queue
         max_messages = min(max_messages, 100)
-        db = couch['messages']
+        db = couch['msg_{}'.format(group_id)]
 
         response = {'status': 'ok'}    
 
