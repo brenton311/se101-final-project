@@ -190,6 +190,11 @@ public class BluetoothActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         try {
+            sendData("CMD:Finished");
+        } catch (Exception ex) {
+            me.showMessage("Bluetooth Connection Failed");
+        }
+        try {
             closeBT();
         }
         catch (IOException ex) { }

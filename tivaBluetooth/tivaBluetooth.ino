@@ -73,13 +73,23 @@ void loop()
   {
     msg = Serial1.readStringUntil('\n');
     Serial.println(msg);
-
-    /*OrbitOledClear();
-      OrbitOledSetCursor(0, 0);
-      OrbitOledPutString((char*) msg.c_str());*/
-    msgs[msgReceiveIndex++] = msg;
-    numMsgs++;
-    updateDisplay();
+    
+    if (msg.substring(0,3) == "CMD:") 
+    {
+      switch (msg.substring(4)){
+        case "Finished":
+          numMsgs = 0;
+          msgReceiveIndex =0
+          msgReadIndex = 0;
+          break;
+      }
+    }
+    else 
+    {
+      msgs[msgReceiveIndex++] = msg;
+      numMsgs++;
+      updateDisplay();
+    }
   }
 
   if (numMsgs > 0) {
@@ -95,6 +105,15 @@ void loop()
 
     state =  digitalRead(Switches[1]);
     if (state != SwitchStates[1]) {
+      SwitchStates[1] = state;
+      msgReadIndex++;
+      if (msgReadIndex >= numMsgs) {
+        msgReadIndex = numMsgs - 1;
+      }
+      updateDisplay();
+    }
+
+    if (digitalRead(Switches[1])) {
       SwitchStates[1] = state;
       msgReadIndex++;
       if (msgReadIndex >= numMsgs) {

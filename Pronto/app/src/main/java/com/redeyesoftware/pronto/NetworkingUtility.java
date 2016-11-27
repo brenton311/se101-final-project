@@ -87,7 +87,7 @@ public class NetworkingUtility {
                                 for (int i = 0; i < response.length(); i++) {
                                     JSONObject comment = response.getJSONObject(i);
                                     for (int j = 0; j < tags.length; j++) {
-                                        comments[i][j] = comment.getString(tags[j]);
+                                        comments[i][j] = comment.getString(tags[j]).replaceAll("\\uFFFD","");
                                     }
                                 }
                                 callMethodOnFinished(methodKey);
