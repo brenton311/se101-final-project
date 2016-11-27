@@ -11,10 +11,17 @@
 
 const uint32_t SwitchCount = 2;
 const uint32_t ButtonCount = 2;
-const uint32_t Switches[SwitchCount] = {PA_6,PA_7};
+const uint32_t Switches[SwitchCount] = {PA_6, PA_7};
 int SwitchStates[2] = {0 , 0};
-const uint32_t Buttons[ButtonCount] = { PD_2, PE_0 };
+const uint32_t Buttons[ButtonCount] = { PE_0, PD_2 };
+bool ButtonStates[2] = {false, false};
+const uint32_t likeLED = PC_7;
+const uint32_t bookmarkLED = PC_6;
 const uint32_t Potentiometer = PE_3;
+
+extern int    dxcoOledFontCur;
+extern int    dycoOledFontCur;
+
 
 extern int    dxcoOledFontCur;
 extern int    dycoOledFontCur;
@@ -40,10 +47,13 @@ void setup()
   Serial.println(dxcoOledFontCur);
   Serial.println(dycoOledFontCur);
 
+  pinMode(likeLED, OUTPUT);
+  pinMode(bookmarkLED, OUTPUT);
+
   for (int i = 0; i < SwitchCount; ++i ) {
     pinMode(Switches[i], INPUT);
   }
-  
+
   for (int i = 0; i < ButtonCount; ++i ) {
     pinMode(Buttons[i], INPUT);
   }
@@ -53,7 +63,7 @@ void setup()
   }
 
   OrbitOledSetCursor(0, 0);
-  OrbitOledPutString("Welcome to Pronto! Set the app to \"Tiva Mode\"");
+  OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
 }
 
 
@@ -69,22 +79,22 @@ int y = 0;
 
 void loop()
 {
+  
   if (Serial1.available())
   {
     msg = Serial1.readStringUntil('\n');
     Serial.println(msg);
-    
-    if (msg.substring(0,3) == "CMD:") 
+
+    if (msg.substring(0, 3) == "CMD:")
     {
-      switch (msg.substring(4)){
-        case "Finished":
-          numMsgs = 0;
-          msgReceiveIndex =0
-          msgReadIndex = 0;
-          break;
+      if (msg.substring(4) == "Finished")
+      {
+        numMsgs = 0;
+        msgReceiveIndex = 0;
+        msgReadIndex = 0;
       }
     }
-    else 
+    else
     {
       msgs[msgReceiveIndex++] = msg;
       numMsgs++;
@@ -104,6 +114,9 @@ void loop()
     }
 
     state =  digitalRead(Switches[1]);
+    //Serial.print("vals ");
+    //Serial.println(state);
+    //Serial.println(SwitchStates[1]);
     if (state != SwitchStates[1]) {
       SwitchStates[1] = state;
       msgReadIndex++;
@@ -113,13 +126,22 @@ void loop()
       updateDisplay();
     }
 
-    if (digitalRead(Switches[1])) {
-      SwitchStates[1] = state;
-      msgReadIndex++;
-      if (msgReadIndex >= numMsgs) {
-        msgReadIndex = numMsgs - 1;
-      }
-      updateDisplay();
+    if (digitalRead(Buttons[0]) == HIGH && !ButtonStates[0]) {
+      ButtonStates[0] = true;
+      Serial.println("pressed");
+      digitalWrite(likeLED, HIGH);
+    }
+    if (digitalRead(Buttons[0]) == LOW && ButtonStates[0]) {
+      ButtonStates[0] = false;
+    }
+
+    if (digitalRead(Buttons[1]) == HIGH && !ButtonStates[1]) {
+      ButtonStates[1] = true;
+      Serial.println("pressed");
+      digitalWrite(bookmarkLED, HIGH);
+    }
+    if (digitalRead(Buttons[1]) == LOW && ButtonStates[1]) {
+      ButtonStates[1] = false;
     }
 
     // Get the desired cursor y location
@@ -165,4 +187,5 @@ void updateDisplay() {
   OrbitOledPutString((char*) msgs[msgReadIndex].c_str());
 
 }
+
 
