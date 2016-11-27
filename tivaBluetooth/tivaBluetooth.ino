@@ -9,6 +9,13 @@
 #include <OrbitOledChar.h>
 #include <delay.h>
 
+const uint32_t SwitchCount = 2;
+const uint32_t ButtonCount = 2;
+const uint32_t Switches[SwitchCount] = {PA_6,PA_7};
+int SwitchStates[2] = {0 , 0};
+const uint32_t Buttons[ButtonCount] = { PD_2, PE_0 };
+const uint32_t Potentiometer = PE_3;
+
 extern int    dxcoOledFontCur;
 extern int    dycoOledFontCur;
 
@@ -19,76 +26,124 @@ const int maxCharsY = 5;
 // Scale pot position between 0-100
 int getPotPosition(int pin)
 {
-    int value = analogRead(pin);
-    return map(value, 0, 4096, 0, 100);
+  int value = analogRead(pin);
+  return map(value, 0, 4096, 0, 100);
 }
 
-void setup() 
+void setup()
 {
-    pinMode(LED, OUTPUT);  // pin 48 (on-board LED) as OUTPUT
-    Serial1.begin(9600); 
-    Serial.begin(19200);       // start serial communication at 9600bps
-    OrbitOledInit();
+  pinMode(LED, OUTPUT);  // pin 48 (on-board LED) as OUTPUT
+  Serial1.begin(9600);
+  Serial.begin(19200);       // start serial communication at 9600bps
+  OrbitOledInit();
 
-    Serial.println(dxcoOledFontCur);
-    Serial.println(dycoOledFontCur);
+  Serial.println(dxcoOledFontCur);
+  Serial.println(dycoOledFontCur);
+
+  for (int i = 0; i < SwitchCount; ++i ) {
+    pinMode(Switches[i], INPUT);
+  }
+  
+  for (int i = 0; i < ButtonCount; ++i ) {
+    pinMode(Buttons[i], INPUT);
+  }
+
+  for (int i = 0; i < SwitchCount; ++i ) {
+    SwitchStates[i] = digitalRead(Switches[i]);
+  }
+
+  OrbitOledSetCursor(0, 0);
+  OrbitOledPutString("Welcome to Pronto! Set the app to \"Tiva Mode\"");
 }
 
 
 String msg;
 int oldPotPosition = 0;
 
-String deafualtMessage = "Welcome to Pronto! Set the app to \"Tiva Mode\"";
 int numMsgs = 0;
 int msgReceiveIndex = 0;
 int msgReadIndex = 0;
-String msgs[30]= {};
+String msgs[30] = {};
 
 int y = 0;
 
-void loop() 
+void loop()
 {
-    if(Serial1.available())
-    {
-         msg = Serial1.readStringUntil('\n');
-         Serial.println(msg);
-    
-         /*OrbitOledClear();
-         OrbitOledSetCursor(0, 0);
-         OrbitOledPutString((char*) msg.c_str());*/
-         msgs[msgReceiveIndex++] = msg;
-         numMsgs++;
+  if (Serial1.available())
+  {
+    msg = Serial1.readStringUntil('\n');
+    Serial.println(msg);
+
+    /*OrbitOledClear();
+      OrbitOledSetCursor(0, 0);
+      OrbitOledPutString((char*) msg.c_str());*/
+    msgs[msgReceiveIndex++] = msg;
+    numMsgs++;
+    updateDisplay();
+  }
+
+  if (numMsgs > 0) {
+    int state =  digitalRead(Switches[0]);
+    if (state != SwitchStates[0]) {
+      SwitchStates[0] = state;
+      msgReadIndex--;
+      if (msgReadIndex < 0) {
+        msgReadIndex = 0;
+      }
+      updateDisplay();
+    }
+
+    state =  digitalRead(Switches[1]);
+    if (state != SwitchStates[1]) {
+      SwitchStates[1] = state;
+      msgReadIndex++;
+      if (msgReadIndex >= numMsgs) {
+        msgReadIndex = numMsgs - 1;
+      }
+      updateDisplay();
     }
 
     // Get the desired cursor y location
-    int newPotPosition = getPotPosition(A0);
-    if(newPotPosition != oldPotPosition)
+    int newPotPosition = getPotPosition(Potentiometer);
+    if (newPotPosition != oldPotPosition)
     {
-        //map(value, fromLow, fromHigh, toLow, toHigh)
-        // The min pos is all messages just off the screen (top)
-        // The max pos is all message just off the screen (bottom)
-        y = map(newPotPosition, 0, 100, -numMsgs - 1, maxCharsY);
-        Serial.println(y);
-        Serial.println(msgs[msgReadIndex]);
-        oldPotPosition = newPotPosition;
-
-        // Display all the messages to the screen in the correct order
-        // Only displayed when pot position changes to prevent screen flicker
-        OrbitOledClear();
-       /* for(int i = 0; i < numMsgs; i++)
-        {
-            int yPos = y + i;
-
-            // Don't draw messages if they are not on the screen
-            if(yPos < 0 || yPos > maxCharsY - 2)
-                continue;
-
-            OrbitOledSetCursor(0, yPos);
-            OrbitOledPutString((char*) msgs[i].c_str());
-        }*/
-        OrbitOledSetCursor(0, y);
-        OrbitOledPutString((char*) msgs[msgReadIndex].c_str());
+      y = map(newPotPosition, 0, 100, -numMsgs - 1, maxCharsY);
+      oldPotPosition = newPotPosition;
+      updateDisplay();
     }
+  }
 
-    delay(100);
+  delay(100);
 }
+
+void updateDisplay() {
+  //map(value, fromLow, fromHigh, toLow, toHigh)
+  // The min pos is all messages just off the screen (top)
+  // The max pos is all message just off the screen (bottom)
+
+  Serial.print(y);
+  Serial.print(" ");
+  Serial.print(msgReadIndex);
+  Serial.print(" ");
+  Serial.println(msgs[msgReadIndex]);
+
+
+  // Display all the messages to the screen in the correct order
+  // Only displayed when pot position changes to prevent screen flicker
+  OrbitOledClear();
+  /* for(int i = 0; i < numMsgs; i++)
+    {
+       int yPos = y + i;
+
+       // Don't draw messages if they are not on the screen
+       if(yPos < 0 || yPos > maxCharsY - 2)
+           continue;
+
+       OrbitOledSetCursor(0, yPos);
+       OrbitOledPutString((char*) msgs[i].c_str());
+    }*/
+  OrbitOledSetCursor(0, y);
+  OrbitOledPutString((char*) msgs[msgReadIndex].c_str());
+
+}
+
