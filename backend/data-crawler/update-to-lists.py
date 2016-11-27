@@ -3,7 +3,7 @@ import couchdb
 couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
 
 if __name__ == '__main__':
-    db = couch['messages']
+    db = couch['msg_1150546131643551']
     for row in db:
         msg = db[row]
 
@@ -14,5 +14,6 @@ if __name__ == '__main__':
         msg['likes'] = []
         msg['dislikes'] = []
         msg['bookmarks'] = []
-        del msg['unlikes']
+        if 'unlikes' in msg:
+            del msg['unlikes']
         db.save(msg)
