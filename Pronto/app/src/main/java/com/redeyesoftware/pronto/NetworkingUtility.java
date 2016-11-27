@@ -45,6 +45,9 @@ public class NetworkingUtility {
             case "fillFeed":
                 RefreshableScrollView.addCommentsToFeed();
                 return;
+            case "fillTiva":
+                BluetoothActivity.sendCommentsToTiva();
+                return;
         }
     }
 

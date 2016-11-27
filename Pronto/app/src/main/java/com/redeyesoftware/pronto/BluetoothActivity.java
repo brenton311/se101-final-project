@@ -9,11 +9,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Button;
@@ -26,6 +28,9 @@ import java.util.Set;
 import java.util.UUID;
 
 public class BluetoothActivity extends AppCompatActivity {
+
+    private static BluetoothActivity me;
+
     TextView myLabel;
     EditText myTextbox;
     BluetoothAdapter mBluetoothAdapter;
@@ -44,42 +49,50 @@ public class BluetoothActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
-        //Button openButton = (Button)findViewById(R.id.open);
-        Button sendButton = (Button)findViewById(R.id.send);
-        //Button closeButton = (Button)findViewById(R.id.close);
-        //myLabel = (TextView)findViewById(R.id.label);
-        //myTextbox = (EditText)findViewById(R.id.entry);
+        me = this;
 
-        //Open Button
-       /*openButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {*/
-                try {
-                    findBT();
-                    openBT();
-                }
-                catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            /*}
-        });*/
+        try {
+            findBT();
+            openBT();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
-        //Send Button
-       sendButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                try {
-                    sendData();
-                }
-                catch (Exception ex) {
-                    showMessage("Bluetooth Connection Failed");
-                }
-            }
+    }
+
+    private void refresh() {
+        SharedPreferences prefs = getSharedPreferences("PrefsFile", MODE_PRIVATE);
+        String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillTiva", new String[]{
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
         });
+    }
+
+    public static void sendCommentsToTiva() {
+        try {
+            for (int i = 0; i < NetworkingUtility.comments.length; i++) {
+                String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
+                boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
+                boolean iBookmarked = NetworkingUtility.comments[i][5].indexOf(LoginActivity.getId()) != -1;
+                int numLikes = NetworkingUtility.comments[i][4].length() - NetworkingUtility.comments[i][4].replace(",", "").length();
+                int numBookmarks = NetworkingUtility.comments[i][5].length() - NetworkingUtility.comments[i][5].replace(",", "").length();
+                if (numLikes > 0) numLikes++;
+                if (numBookmarks > 0) numBookmarks++;
+                if (numLikes == 0 && NetworkingUtility.comments[i][4].length() > 4) numLikes = 1;
+                if (numBookmarks == 0 && NetworkingUtility.comments[i][5].length() > 4)
+                    numBookmarks = 1;
+                //Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes, iLiked, numBookmarks, iBookmarked, false);
+                me.sendData(NetworkingUtility.comments[i][2]);
+            }
+        } catch (Exception ex) {
+            me.showMessage("Bluetooth Connection Failed");
+        }
     }
 
     void findBT() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(mBluetoothAdapter == null) {
-            Toast.makeText(this, "No bluetooth adapter available", Toast.LENGTH_SHORT).show();
+            showMessage("This device does not support Bluetooth");
         }
 
         if(!mBluetoothAdapter.isEnabled()) {
@@ -92,7 +105,7 @@ public class BluetoothActivity extends AppCompatActivity {
             for(BluetoothDevice device : pairedDevices) {
                 if(device.getName().equals("HC-05")) {
                     mmDevice = device;
-                    Toast.makeText(this, "Bluetooth Device Found", Toast.LENGTH_SHORT).show();
+                    showMessage("Pronto Receiver Found");
                     break;
                 }
             }
@@ -107,7 +120,7 @@ public class BluetoothActivity extends AppCompatActivity {
         mmOutputStream = mmSocket.getOutputStream();
         mmInputStream = mmSocket.getInputStream();
         beginListenForData();
-        Toast.makeText(this, "Bluetooth Opened", Toast.LENGTH_SHORT).show();
+        showMessage("Bluetooth Connection Opened");
     }
 
     void beginListenForData() {
@@ -135,7 +148,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
                                     handler.post(new Runnable() {
                                         public void run() {
-                                            myLabel.setText(data);
+                                            showMessage(data);
                                         }
                                     });
                                 }
@@ -155,8 +168,7 @@ public class BluetoothActivity extends AppCompatActivity {
         workerThread.start();
     }
 
-    void sendData() throws Exception {
-        String msg = "Yo";
+    void sendData(String msg) throws Exception {
         msg += "\n";
         mmOutputStream.write(msg.getBytes());
     }

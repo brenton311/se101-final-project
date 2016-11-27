@@ -37,10 +37,11 @@ void setup()
 
 String msg;
 int oldPotPosition = 0;
-int msgIndex = 0;
 
-const int numMsgs = 10;
-String msgs[numMsgs] = {"Hello World!!", "PRONTO", "Brenton S.", "Test", "1", "2Hello World!!", "2PRONTO", "2Brenton S.", "2Test", "21"};
+String deafualtMessage = "Welcome to Pronto! Set the app to \"Tiva Mode\"";
+int numMsgs = 0;
+int msgIndex = 0;
+String msgs[]= new String[30];
 
 int y = 0;
 
@@ -51,15 +52,18 @@ void loop()
          msg = Serial1.readString();
          Serial.println(msg);
     
-         OrbitOledClear();
+         /*OrbitOledClear();
          OrbitOledSetCursor(0, 0);
-         OrbitOledPutString((char*) msg.c_str());
+         OrbitOledPutString((char*) msg.c_str());*/
+         msgs[msgIndex++] = msg;
+         numMsgs++;
     }
 
     // Get the desired cursor y location
     int newPotPosition = getPotPosition(A0);
     if(newPotPosition != oldPotPosition)
     {
+        //map(value, fromLow, fromHigh, toLow, toHigh)
         // The min pos is all messages just off the screen (top)
         // The max pos is all message just off the screen (bottom)
         y = map(newPotPosition, 0, 100, -numMsgs - 1, maxCharsY);

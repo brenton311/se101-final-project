@@ -11,13 +11,14 @@
     tools:context="com.redeyesoftware.pronto.LoginActivity">
 
 
-    <Button
-        android:text="Button"
+    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="72dp"
-        android:layout_marginTop="137dp"
-        android:id="@+id/send" />
+        android:inputType="textPersonName"
+        android:text="Tiva Mode"
+        android:ems="10"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/editText"
+        android:textAlignment="center" />
 </RelativeLayout>
