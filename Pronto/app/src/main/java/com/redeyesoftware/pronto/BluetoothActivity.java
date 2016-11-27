@@ -120,6 +120,7 @@ public class BluetoothActivity extends AppCompatActivity {
         mmOutputStream = mmSocket.getOutputStream();
         mmInputStream = mmSocket.getInputStream();
         beginListenForData();
+        refresh();
         showMessage("Bluetooth Connection Opened");
     }
 

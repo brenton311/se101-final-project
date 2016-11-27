@@ -40,8 +40,9 @@ int oldPotPosition = 0;
 
 String deafualtMessage = "Welcome to Pronto! Set the app to \"Tiva Mode\"";
 int numMsgs = 0;
-int msgIndex = 0;
-String msgs[]= new String[30];
+int msgReceiveIndex = 0;
+int msgReadIndex = 0;
+String msgs[30]= {};
 
 int y = 0;
 
@@ -49,13 +50,13 @@ void loop()
 {
     if(Serial1.available())
     {
-         msg = Serial1.readString();
+         msg = Serial1.readStringUntil('\n');
          Serial.println(msg);
     
          /*OrbitOledClear();
          OrbitOledSetCursor(0, 0);
          OrbitOledPutString((char*) msg.c_str());*/
-         msgs[msgIndex++] = msg;
+         msgs[msgReceiveIndex++] = msg;
          numMsgs++;
     }
 
@@ -68,13 +69,13 @@ void loop()
         // The max pos is all message just off the screen (bottom)
         y = map(newPotPosition, 0, 100, -numMsgs - 1, maxCharsY);
         Serial.println(y);
-
+        Serial.println(msgs[msgReadIndex]);
         oldPotPosition = newPotPosition;
 
         // Display all the messages to the screen in the correct order
         // Only displayed when pot position changes to prevent screen flicker
         OrbitOledClear();
-        for(int i = 0; i < numMsgs; i++)
+       /* for(int i = 0; i < numMsgs; i++)
         {
             int yPos = y + i;
 
@@ -84,7 +85,9 @@ void loop()
 
             OrbitOledSetCursor(0, yPos);
             OrbitOledPutString((char*) msgs[i].c_str());
-        }
+        }*/
+        OrbitOledSetCursor(0, y);
+        OrbitOledPutString((char*) msgs[msgReadIndex].c_str());
     }
 
     delay(100);
