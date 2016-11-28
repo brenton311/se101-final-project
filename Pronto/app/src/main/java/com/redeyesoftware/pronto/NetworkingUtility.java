@@ -43,7 +43,10 @@ public class NetworkingUtility {
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                RefreshableScrollView.addCommentsToFeed();
+                RefreshableScrollView.addCommentsToFeed(false);
+                return;
+            case "addMoreToFeed":
+                RefreshableScrollView.addCommentsToFeed(true);
                 return;
             case "fillTiva":
                 BluetoothActivity.sendCommentsToTiva();

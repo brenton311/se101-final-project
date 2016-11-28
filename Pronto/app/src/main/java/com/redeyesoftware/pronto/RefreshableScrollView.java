@@ -63,8 +63,11 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
 
-    public static void addCommentsToFeed() {
-        for (int i = 0; i < NetworkingUtility.comments.length; i++) {
+    public static void addCommentsToFeed(boolean addingMore) {
+        if (addingMore) {
+            me.linear.removeView(me.linear.getChildAt(me.linear.getChildCount() - 1));
+        }
+        for (int i = (addingMore)?1:0; i < NetworkingUtility.comments.length; i++) {
             //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
             String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
             boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
@@ -79,6 +82,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }
+        me.createProgressBarLayoutBottom();
         me.finishRefresh();
     }
 
@@ -109,7 +113,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     private void addMore(String start) {
         SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551",start, "fillFeed", new String[]{
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551",start, "addMoreToFeed", new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
         });
     }
@@ -202,12 +206,13 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             View view = getChildAt(getChildCount()-1);
             int diff = (view.getBottom()-(getHeight()+getScrollY()));
             // if diff is zero, then the bottom has been reached
-            //Log.d("Debug",""+diff);
-            if( diff < 0 )//bottom is at-120 instead of 0 b/c bottom padding is 120
+            Log.d("Debug",""+diff);
+            if( diff < 20 )//bottom is at-120 instead of 0 b/c bottom padding is 120
             {
                 refreshing = true;
                 Log.d("Debug", "Bottom has been reached" );
-                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount()-1);
+                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount()-2);
+                //-2 because last child is loading bar
                 addMore(cmt.messageID);
             }
         }
@@ -274,6 +279,23 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         rightParams.topMargin = topMargin;
 
         right.setLayoutParams(rightParams);
+    }
+
+    private void createProgressBarLayoutBottom() {
+        ProgressBar progressBottom = new ProgressBar(parentAcivity);//, null, android.R.attr.progressBarStyleHorizontal);
+        progressBottom.setProgress(100);
+        progressBottom.setIndeterminate(true);
+        //In indeterminate mode, the progress bar shows a cyclic animation without an indication of progress.
+        progressBottom.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary),android.graphics.PorterDuff.Mode.MULTIPLY);
+        linear.addView(progressBottom);
+
+        LinearLayout.LayoutParams progressParams = (LinearLayout.LayoutParams) progressBottom.getLayoutParams();
+        progressParams.weight = 0;
+        progressParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        progressParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        //progressParams.topMargin = topMargin;
+        progressBottom.setLayoutParams(progressParams);
+
     }
 
 }
