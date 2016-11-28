@@ -54,8 +54,8 @@ int y = 0;
 
 
 /*Storing the original string and the JSON object is a bit too
- much for your Arduino - it will most likely use up all the memory. 
- Therefore it is better to parse streams instead of strings*/
+  much for your Arduino - it will most likely use up all the memory.
+  Therefore it is better to parse streams instead of strings*/
 aJsonStream json_stream(&Serial1);
 
 // Scale pot position between 0-100
@@ -146,12 +146,12 @@ comment processJSON(aJsonObject *commentJSON)
   } else if (bookmarkedObject->type != aJson_True && bookmarkedObject->type != aJson_False) {
     Serial.println("Invalid data type in JSON");
   } else {
-   //bookmarked = ((bookmarkedObject->valuestring).equals("true"))?true:false;
-   bookmarked = bookmarkedObject->valuestring;
+    //bookmarked = ((bookmarkedObject->valuestring).equals("true"))?true:false;
+    bookmarked = bookmarkedObject->valuestring;
   }
-  
+
   struct comment  cmt =  {
-    .messageID =id,
+    .messageID = id,
     .message = text,
     .author = author,
     .iLiked = liked,
@@ -193,10 +193,16 @@ void loop()
         numMsgs++;
         commentJSON = commentJSON -> next;
       }
+
+
+
       //Deleting the root takes care of everything else (deletes the objects and all values referenced by it)
       aJson.deleteItem(commentJSONArray);
+
+      Serial.print("msgs ");
+      Serial.println(numMsgs);
       if (numMsgs > 0) {
-          updateDisplay();
+        updateDisplay();
       }
     }
   }
@@ -227,8 +233,8 @@ void loop()
 
     if (digitalRead(Buttons[0]) == HIGH && !ButtonStates[0]) {
       ButtonStates[0] = true;
-      Serial.println("pressed");
-      digitalWrite(likeLED, HIGH);
+      comments[msgReadIndex].iLiked = !comments[msgReadIndex].iLiked;
+      updateDisplay();
     }
     if (digitalRead(Buttons[0]) == LOW && ButtonStates[0]) {
       ButtonStates[0] = false;
@@ -236,13 +242,15 @@ void loop()
 
     if (digitalRead(Buttons[1]) == HIGH && !ButtonStates[1]) {
       ButtonStates[1] = true;
-      Serial.println("pressed");
-      digitalWrite(bookmarkLED, HIGH);
+      comments[msgReadIndex].iBookmarked = !comments[msgReadIndex].iBookmarked;
+      updateDisplay();
     }
     if (digitalRead(Buttons[1]) == LOW && ButtonStates[1]) {
       ButtonStates[1] = false;
     }
 
+    // Display all the messages to the screen in the correct order
+    // Only displayed when pot position changes to prevent screen flicker
     // Get the desired cursor y location
     int newPotPosition = getPotPosition(Potentiometer);
     if (newPotPosition != oldPotPosition)
@@ -267,21 +275,19 @@ void updateDisplay() {
   Serial.print(" ");
   Serial.println(comments[msgReadIndex].message);
 
+  if (comments[msgReadIndex].iLiked) {
+    digitalWrite(likeLED, HIGH);
+  } else {
+    digitalWrite(likeLED, LOW);
+  }
 
-  // Display all the messages to the screen in the correct order
-  // Only displayed when pot position changes to prevent screen flicker
+  if (comments[msgReadIndex].iBookmarked) {
+    digitalWrite(bookmarkLED, HIGH);
+  } else {
+    digitalWrite(bookmarkLED, LOW);
+  }
+
   OrbitOledClear();
-  /* for(int i = 0; i < numMsgs; i++)
-    {
-       int yPos = y + i;
-
-       // Don't draw messages if they are not on the screen
-       if(yPos < 0 || yPos > maxCharsY - 2)
-           continue;
-
-       OrbitOledSetCursor(0, yPos);
-       OrbitOledPutString((char*) msgs[i].c_str());
-    }*/
   OrbitOledSetCursor(0, y);
   OrbitOledPutString((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
 
