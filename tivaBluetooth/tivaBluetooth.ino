@@ -1,3 +1,6 @@
+
+#include <aJSON.h>
+
 // char val; // variable to receive data from the serial port
 #define LED GREEN_LED
 // #include <
@@ -26,9 +29,34 @@ extern int    dycoOledFontCur;
 extern int    dxcoOledFontCur;
 extern int    dycoOledFontCur;
 
+struct comment {
+  String messageID;
+  String message;
+  String author;
+  boolean iLiked;
+  boolean iBookmarked;
+};
+
 // Found through experimentation
 const int maxCharsX = 17;
 const int maxCharsY = 5;
+
+String msg;
+int oldPotPosition = 0;
+
+int numMsgs = 0;
+int msgReceiveIndex = 0;
+int msgReadIndex = 0;
+comment *comments = new comment[30];
+
+int y = 0;
+
+
+
+/*Storing the original string and the JSON object is a bit too
+ much for your Arduino - it will most likely use up all the memory. 
+ Therefore it is better to parse streams instead of strings*/
+aJsonStream json_stream(&Serial1);
 
 // Scale pot position between 0-100
 int getPotPosition(int pin)
@@ -67,24 +95,78 @@ void setup()
   OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
 }
 
+comment processJSON(aJsonObject *commentJSON)
+{
+  aJsonObject *authorObject = aJson.getObjectItem(commentJSON, "author_id");
+  aJsonObject *msgIdObject = aJson.getObjectItem(commentJSON, "msg_id");
+  aJsonObject *textObject = aJson.getObjectItem(commentJSON, "text");
+  aJsonObject *likedObject = aJson.getObjectItem(commentJSON, "i_liked");
+  aJsonObject *bookmarkedObject = aJson.getObjectItem(commentJSON, "i_bookmarked");
 
-String msg;
-int oldPotPosition = 0;
+  String author = "";
+  if (!authorObject) {
+    Serial.println("Missing data in JSON");
+  } else if (authorObject->type != aJson_String) {
+    Serial.println("Invalid data type in JSON");
+  } else {
+    author = authorObject->valuestring;
+  }
 
-int numMsgs = 0;
-int msgReceiveIndex = 0;
-int msgReadIndex = 0;
-String msgs[30] = {};
+  String id = "";
+  if (!msgIdObject) {
+    Serial.println("Missing data in JSON");
+  } else if (msgIdObject->type != aJson_String) {
+    Serial.println("Invalid data type in JSON");
+  } else {
+    id = msgIdObject->valuestring;
+  }
 
-int y = 0;
+  String text = "";
+  if (!textObject) {
+    Serial.println("Missing data in JSON");
+  } else if (textObject->type != aJson_String) {
+    Serial.println("Invalid data type in JSON");
+  } else {
+    text = textObject->valuestring;
+  }
+
+  bool liked = false;
+  if (!likedObject) {
+    Serial.println("Missing data in JSON");
+  } else if (likedObject->type != aJson_True && likedObject->type != aJson_False) {
+    Serial.println("Invalid data type in JSON");
+  } else {
+    //liked = ((likedObject->valuestring).equals("true"))?true:false;
+    liked = likedObject->valuebool;
+  }
+
+  bool bookmarked = false;
+  if (!bookmarkedObject) {
+    Serial.println("Missing data in JSON");
+  } else if (bookmarkedObject->type != aJson_True && bookmarkedObject->type != aJson_False) {
+    Serial.println("Invalid data type in JSON");
+  } else {
+   //bookmarked = ((bookmarkedObject->valuestring).equals("true"))?true:false;
+   bookmarked = bookmarkedObject->valuestring;
+  }
+  
+  struct comment  cmt =  {
+    .messageID =id,
+    .message = text,
+    .author = author,
+    .iLiked = liked,
+    .iBookmarked = bookmarked
+  };
+  return cmt;
+}
 
 void loop()
 {
 
   if (Serial1.available())
   {
-    msg = Serial1.readStringUntil('\n');
-    Serial.println(msg);
+    //msg = Serial1.readStringUntil('\n');
+    //Serial.println(msg);
 
     if (msg.substring(0, 4).equals("CMD:"))
     {
@@ -100,9 +182,22 @@ void loop()
     }
     else
     {
-      msgs[msgReceiveIndex++] = msg;
-      numMsgs++;
-      updateDisplay();
+      aJsonObject *commentJSONArray = aJson.parse(&json_stream);
+      if (!commentJSONArray) {
+        Serial.println("Missing data in JSON");
+        return;
+      }
+      aJsonObject *commentJSON = commentJSONArray -> child;
+      while (commentJSON) {
+        comments[msgReceiveIndex++] = processJSON(commentJSON);
+        numMsgs++;
+        commentJSON = commentJSON -> next;
+      }
+      //Deleting the root takes care of everything else (deletes the objects and all values referenced by it)
+      aJson.deleteItem(commentJSONArray);
+      if (numMsgs > 0) {
+          updateDisplay();
+      }
     }
   }
 
@@ -170,7 +265,7 @@ void updateDisplay() {
   Serial.print(" ");
   Serial.print(msgReadIndex);
   Serial.print(" ");
-  Serial.println(msgs[msgReadIndex]);
+  Serial.println(comments[msgReadIndex].message);
 
 
   // Display all the messages to the screen in the correct order
@@ -188,7 +283,7 @@ void updateDisplay() {
        OrbitOledPutString((char*) msgs[i].c_str());
     }*/
   OrbitOledSetCursor(0, y);
-  OrbitOledPutString((char*) msgs[msgReadIndex].c_str());
+  OrbitOledPutString((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
 
 }
 

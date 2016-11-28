@@ -92,8 +92,8 @@ public class BluetoothActivity extends AppCompatActivity {
             comment.put("author_id", NetworkingUtility.comments[index][0]);
             comment.put("msg_id", NetworkingUtility.comments[index][1]);
             comment.put("text", NetworkingUtility.comments[index][2]);
-            comment.put("i_liked", (iLiked)?"true":"false");
-            comment.put("i_bookmarked", (iBookmarked)?"true":"false");
+            comment.put("i_liked", iLiked);
+            comment.put("i_bookmarked", iBookmarked);
         } catch (JSONException e) {
             e.printStackTrace();
         }
