@@ -68,20 +68,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageButton
-                    android:id="@+id/viewInNewBtn"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:gravity="end"
-                    android:src= "@drawable/open"
-                    android:tint="@android:color/white"
-                    android:scaleType = "centerCrop"
-                    android:background="@android:color/transparent"
-                    android:textSize="17dp"
-                    android:textStyle="normal"
-                    android:layout_marginEnd="15dp"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@+id/likeBtn" />
+            <ImageView
+                android:id="@+id/img"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:scaleType = "fitCenter"
+                android:background="@android:color/transparent"
+                android:text = "This is sample text to test the design of this UI element. Two sentences is a suffient estimated length for an imporant facebook message." />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
 
                 <ImageButton
                     android:id="@+id/likeBtn"

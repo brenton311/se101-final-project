@@ -43,17 +43,28 @@ public class NetworkingUtility {
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                RefreshableScrollView.addCommentsToFeed();
+                RefreshableScrollView.addCommentsToFeed(false);
+                return;
+            case "addMoreToFeed":
+                RefreshableScrollView.addCommentsToFeed(true);
+                return;
+            case "fillTiva":
+                BluetoothActivity.sendCommentsToTiva();
+                return;
+            case "updateBookmarkFromBluetooth":
+                BluetoothActivity.updateBookmarkFromBluetooth();
                 return;
         }
     }
 
-    public static void getComments(final String urlEnd, final String token, final int max_messages, final int min_messages, final String group_id, final String methodKey, final String[] tags) {
+    public static void getComments(final String urlEnd, final String token, final int max_messages, final int min_messages, final String group_id, final String start, final String methodKey, final String[] tags) {
         comments = null;//if not rewritten, will send back empty array
 
         //Todo: consider when get less than max_messages
         String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
-
+        if (!start.equals("")) {
+            newUrl += "&start="+start;
+        }
         //Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
         JsonArrayRequest req = new JsonArrayRequest(newUrl,
@@ -79,18 +90,19 @@ public class NetworkingUtility {
 
                         try {
                             if (max_messages >= 60 || response.length()>= min_messages) {
+                                Log.d("Debug","Got enough nondeleted messages.. asked for " + max_messages + " got " + response.length());
                                 comments = new String[response.length()][tags.length];
                                 // Parsing json array response, loop through each json object
                                 for (int i = 0; i < response.length(); i++) {
                                     JSONObject comment = response.getJSONObject(i);
                                     for (int j = 0; j < tags.length; j++) {
-                                        comments[i][j] = comment.getString(tags[j]);
+                                        comments[i][j] = comment.getString(tags[j]).replaceAll("\\uFFFD","");
                                     }
                                 }
                                 callMethodOnFinished(methodKey);
                             } else {
                                 //keeps asking for 10 more until a maximum max of 60
-                                getComments(urlEnd, token, max_messages+10, min_messages, group_id, methodKey, tags);
+                                getComments(urlEnd, token, max_messages+10, min_messages, group_id, start, methodKey, tags);
                                 Log.d("Debug","Not enough nondeleted messages.. asked for " + max_messages + " got " + response.length() + " ... asking for " + (max_messages+10)+ " now");
                             }
 
