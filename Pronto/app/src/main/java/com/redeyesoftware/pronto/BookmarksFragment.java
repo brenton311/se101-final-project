@@ -88,6 +88,7 @@ public class BookmarksFragment extends Fragment {
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
         ScrollView scroll = new ScrollView(getActivity());
+        scroll.setPadding(0,0,0,120);
         scroll.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         linear = new LinearLayout(getActivity());
         linear.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));

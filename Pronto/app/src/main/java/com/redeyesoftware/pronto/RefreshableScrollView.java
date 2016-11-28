@@ -106,6 +106,14 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         me.linear.removeAllViews();
     }
 
+    private void addMore(String start) {
+        SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+        String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551",start, "fillFeed", new String[]{
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+        });
+    }
+
    /* @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         View view = (View) getChildAt(getChildCount()-1);
@@ -122,15 +130,15 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     public boolean onTouch(View v, MotionEvent event) {
         ScrollView scroll = (ScrollView) v;
         if (scroll.getScrollY() == 0) {//if at top of screen
-            Log.i("Touch action", ""+event.getAction());
+            //Log.i("Touch action", ""+event.getAction());
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    Log.i("Touch action", "down");
+                    //Log.i("Touch action", "down");
                     startY = event.getY();
                     lastY = startY;
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    Log.i("Touch action", "move");
+                    //Log.i("Touch action", "move");
                     if (startY == -1) {
                         //ACTION_DOWN Doesnt seem to be called when comments fill screen (when not in testable mode)
                         //so had to implement this if block and reset startY to -1 ater drag finished
@@ -140,7 +148,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                     }
                     if (!refreshing && event.getY() > lastY) {
                         lastY = event.getY();
-                        Log.i("Drag length", ""+(event.getY() - startY));
+                        //Log.i("Drag length", ""+(event.getY() - startY));
                         if (event.getY() - startY <= dragLength) {
                             double percent = (event.getY() - startY) / dragLength;
                             double weight;
@@ -180,7 +188,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                     //if finger up and not refreshing, hide load and reset linear height
                     startY = -1;
                     if (!refreshing) {
-                        Log.i("Debug", "action up " + event.getY());
+                        //Log.i("Debug", "action up " + event.getY());
                         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
                         params.weight = 2;
                         progress.setLayoutParams(params);
@@ -189,6 +197,18 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                         linearParams.topMargin = 0;
                         linear.setLayoutParams(linearParams);
                     }
+            }
+        } else if (!refreshing){
+            View view = getChildAt(getChildCount()-1);
+            int diff = (view.getBottom()-(getHeight()+getScrollY()));
+            // if diff is zero, then the bottom has been reached
+            //Log.d("Debug",""+diff);
+            if( diff < 0 )//bottom is at-120 instead of 0 b/c bottom padding is 120
+            {
+                refreshing = true;
+                Log.d("Debug", "Bottom has been reached" );
+                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount()-1);
+                addMore(cmt.messageID);
             }
         }
         return false;

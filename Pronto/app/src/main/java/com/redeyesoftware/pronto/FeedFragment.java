@@ -54,6 +54,7 @@ public class FeedFragment extends Fragment {
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
         RefreshableScrollView scroll = new RefreshableScrollView(getActivity());
+        scroll.setPadding(0,0,0,120);
         scroll.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         RelativeLayout relLayout = new RelativeLayout(getActivity());
         LinearLayout linear = new LinearLayout(getActivity());
