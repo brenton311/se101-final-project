@@ -118,6 +118,7 @@ def login():
 
     return jsonify(response)
 
+
 @application.route('/msg/like/', methods=['POST'])
 def like_msg():
     response = {'status': 'ok'}    
@@ -343,6 +344,10 @@ def search_msgs():
         raise e
         return 'Invalid Parameters'
         # raise e
+
+@application.route('/inbox/feed/', methods=['GET'])
+def get_feed():
+    return redirect('/inbox/main/')
 
 @application.route("/inbox/main/", methods=['GET'])
 def get_msgs():
