@@ -25,9 +25,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -67,7 +74,7 @@ public class BluetoothActivity extends AppCompatActivity {
     private void refresh() {
         SharedPreferences prefs = getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillTiva", new String[]{
+        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551","", "fillTiva", new String[]{
                 "author_id", "msg_id", "text", "likes", "bookmarks"
         });
     }
@@ -165,7 +172,10 @@ public class BluetoothActivity extends AppCompatActivity {
                                     String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
                                     if (data.substring(0,4).equals("LIKE")) {
                                         NetworkingUtility.post("/msg/like/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
-                                    } else if (data.substring(0,4).equals("LIKE")) {
+                                    } else if (data.substring(0,4).equals("BKMK")) {
+                                        NetworkingUtility.getComments("/inbox/main/", token, 1, 1, "1150546131643551",data.substring(5,data.length()-1), "updateBookmarkFromBluetooth", new String[]{
+                                                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                                        });
                                         NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
                                     } else if (data.substring(0,4).equals("DISL")) {
                                         NetworkingUtility.post("/msg/dislike/", new String[]{"access_token", "msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
@@ -213,6 +223,7 @@ public class BluetoothActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        MainPage.updateFragments();
         try {
             sendData("CMD:Finished");
         } catch (Exception ex) {
@@ -222,5 +233,73 @@ public class BluetoothActivity extends AppCompatActivity {
             closeBT();
         }
         catch (IOException ex) { }
+    }
+
+    public static void updateBookmarkFromBluetooth() {
+        ArrayList<SerializableBookmark> bookmarkList = new ArrayList<SerializableBookmark>();
+
+        File bookmarksFile = new File(me.getFilesDir().getPath().toString() + "/SavedProntoBookmarks.txt");
+        if (bookmarksFile.exists()) {
+            Log.d("Debug", "comment found file");
+            try {
+                FileInputStream fileIn = new FileInputStream(bookmarksFile);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                bookmarkList = (ArrayList<SerializableBookmark>) in.readObject();
+                //Log.i("palval", "dir.exists()");
+                in.close();
+                fileIn.close();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.d("Debug", "comment did not find file");
+            try {
+                bookmarksFile.createNewFile(); // if file already exists will do nothing
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String date = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[0][3]));
+        boolean iLiked = NetworkingUtility.comments[0][4].indexOf(LoginActivity.getId()) != -1;
+        boolean iBookmarked = NetworkingUtility.comments[0][5].indexOf(LoginActivity.getId()) != -1;
+        int numLikes = NetworkingUtility.comments[0][4].length() - NetworkingUtility.comments[0][4].replace(",", "").length();
+        int numBookmarks =  NetworkingUtility.comments[0][5].length() - NetworkingUtility.comments[0][5].replace(",", "").length();
+        if (numLikes>0) numLikes++;
+        if (numBookmarks>0) numBookmarks++;
+        if (numLikes==0 && NetworkingUtility.comments[0][4].length()>4) numLikes=1;
+        if (numBookmarks==0 && NetworkingUtility.comments[0][5].length()>4) numBookmarks=1;
+
+        if (iBookmarked) {//delete
+            for (int i=0; i<bookmarkList.size();i++) {
+                if(bookmarkList.get(i).getMessageID().equals(NetworkingUtility.comments[0][1])) {
+                    bookmarkList.remove(i);
+                }
+            }
+        } else {//create
+            SerializableBookmark newBookmark = new SerializableBookmark(NetworkingUtility.comments[0][1], NetworkingUtility.comments[0][2], NetworkingUtility.comments[0][0], date, numLikes, iLiked, numBookmarks+1);
+            bookmarkList.add(newBookmark);
+        }
+
+        try {
+            FileOutputStream fileOut = new FileOutputStream(bookmarksFile);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(bookmarkList);//this is only possible becuase SerializableBookmark implements Serializable
+            out.close();
+            fileOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("Debug", "Bookmark successfully added/deleted");
+
     }
 }
