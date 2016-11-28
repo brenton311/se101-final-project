@@ -105,7 +105,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
         NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551","", "fillFeed", new String[]{
-                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
         me.linear.removeAllViews();
     }
@@ -114,7 +114,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551",start, "addMoreToFeed", new String[]{
-                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
     }
 
@@ -202,19 +202,6 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                         linear.setLayoutParams(linearParams);
                     }
             }
-        } else if (!refreshing){
-            View view = getChildAt(getChildCount()-1);
-            int diff = (view.getBottom()-(getHeight()+getScrollY()));
-            // if diff is zero, then the bottom has been reached
-            Log.d("Debug",""+diff);
-            if( diff < 20 )//bottom is at-120 instead of 0 b/c bottom padding is 120
-            {
-                refreshing = true;
-                Log.d("Debug", "Bottom has been reached" );
-                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount()-2);
-                //-2 because last child is loading bar
-                addMore(cmt.messageID);
-            }
         }
         return false;
     }
@@ -296,6 +283,25 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         //progressParams.topMargin = topMargin;
         progressBottom.setLayoutParams(progressParams);
 
+    }
+
+    @Override
+    public  void onScrollChanged (int l, int t, int oldl, int oldt) {
+        if (!refreshing) {
+            super.onScrollChanged(l, t, oldl, oldt);
+            View view = getChildAt(getChildCount() - 1);
+            int diff = (view.getBottom() - (getHeight() + getScrollY()));
+            // if diff is zero, then the bottom has been reached
+            Log.d("Debug", "" + diff);
+            if (diff < 20)//bottom is at-120 instead of 0 b/c bottom padding is 120
+            {
+                refreshing = true;
+                Log.d("Debug", "Bottom has been reached");
+                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount() - 2);
+                //-2 because last child is loading bar
+                addMore(cmt.messageID);
+            }
+        }
     }
 
 }
