@@ -140,15 +140,6 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
             numBookmarks.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
         }
 
-        if (commentIsBookmark) {
-
-        }
-
-        ((ImageButton) findViewById(R.id.viewInNewBtn)).setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-            }
-        });
 
         ((ImageButton) findViewById(R.id.likeBtn)).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

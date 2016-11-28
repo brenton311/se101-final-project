@@ -158,6 +158,19 @@ public class BluetoothActivity extends AppCompatActivity {
                                     final String data = new String(encodedBytes, "US-ASCII");
                                     readBufferPosition = 0;
 
+                                    Log.d("Debug:", "Message received from bluetooth: " + data);
+                                    //note need to not include last chat when getting token because \n is included at end of data
+
+                                    SharedPreferences prefs = getSharedPreferences("PrefsFile", MODE_PRIVATE);
+                                    String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+                                    if (data.substring(0,4).equals("LIKE")) {
+                                        NetworkingUtility.post("/msg/like/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
+                                    } else if (data.substring(0,4).equals("LIKE")) {
+                                        NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
+                                    } else if (data.substring(0,4).equals("DISL")) {
+                                        NetworkingUtility.post("/msg/dislike/", new String[]{"access_token", "msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
+                                    }
+
                                     handler.post(new Runnable() {
                                         public void run() {
                                             showMessage(data);

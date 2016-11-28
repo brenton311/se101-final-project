@@ -165,13 +165,13 @@ void loop()
 
   if (Serial1.available())
   {
-    //msg = Serial1.readStringUntil('\n');
-    //Serial.println(msg);
-
-    if (msg.substring(0, 4).equals("CMD:"))
+    if (Serial1.peek() == 'C')
     {
+      String msg = Serial1.readStringUntil('\n');
       if (msg.substring(4).equals("Finished"))
       {
+        digitalWrite(bookmarkLED, LOW);
+        digitalWrite(likeLED, LOW);
         numMsgs = 0;
         msgReceiveIndex = 0;
         msgReadIndex = 0;
@@ -193,8 +193,6 @@ void loop()
         numMsgs++;
         commentJSON = commentJSON -> next;
       }
-
-
 
       //Deleting the root takes care of everything else (deletes the objects and all values referenced by it)
       aJson.deleteItem(commentJSONArray);
@@ -235,6 +233,8 @@ void loop()
       ButtonStates[0] = true;
       comments[msgReadIndex].iLiked = !comments[msgReadIndex].iLiked;
       updateDisplay();
+      Serial1.print("LIKE:");
+      Serial1.println(comments[msgReadIndex].messageID);
     }
     if (digitalRead(Buttons[0]) == LOW && ButtonStates[0]) {
       ButtonStates[0] = false;
@@ -243,6 +243,8 @@ void loop()
     if (digitalRead(Buttons[1]) == HIGH && !ButtonStates[1]) {
       ButtonStates[1] = true;
       comments[msgReadIndex].iBookmarked = !comments[msgReadIndex].iBookmarked;
+      Serial1.print("BKMK:");
+      Serial1.println(comments[msgReadIndex].messageID);
       updateDisplay();
     }
     if (digitalRead(Buttons[1]) == LOW && ButtonStates[1]) {

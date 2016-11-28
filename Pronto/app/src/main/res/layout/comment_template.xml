@@ -68,20 +68,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageButton
-                    android:id="@+id/viewInNewBtn"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:gravity="end"
-                    android:src= "@drawable/open"
-                    android:tint="@android:color/white"
-                    android:scaleType = "centerCrop"
-                    android:background="@android:color/transparent"
-                    android:textSize="17dp"
-                    android:textStyle="normal"
-                    android:layout_marginEnd="15dp"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@+id/likeBtn" />
 
                 <ImageButton
                     android:id="@+id/likeBtn"
