@@ -69,7 +69,7 @@ public class FeedFragment extends Fragment {
         if (TESTING_MODE) {
             for (int i=0; i<2; i++) {
                 //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean isBookmarked, boolean commentIsBookmark
-                Comment cmt = new Comment(getActivity(), i+"000", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10,false, false);
+                Comment cmt = new Comment(getActivity(), i+"000", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10,false, false, "");
                 cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 linear.addView(cmt);
             }

@@ -78,7 +78,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             if (numBookmarks>0) numBookmarks++;
             if (numLikes==0 && NetworkingUtility.comments[i][4].length()>4) numLikes=1;
             if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
-            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false);
+            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6]);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }

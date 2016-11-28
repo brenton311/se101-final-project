@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -16,6 +19,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -26,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -44,13 +49,14 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
     String messageID = "";
     String message = "";
-    String author;
-    String date;
+    String author= "";
+    String date = "";
     int likes = 0;
     boolean iLiked = false;
     int bookmarks = 0;
     boolean iBookmarked = false;
     boolean commentIsBookmark = false;
+    String attachment = "";
     Context parentActivity;
 
     public Comment(Context context) {
@@ -68,7 +74,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         init();
     }
 
-    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark) {
+    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark, String attachment) {
         super(context);
         parentActivity = context;
         this.messageID = messageID;
@@ -80,6 +86,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         this.bookmarks = bookmarks;
         this.iBookmarked = iBookmarked;
         this.commentIsBookmark = commentIsBookmark;
+        this.attachment = attachment;
         init();
     }
 
@@ -138,6 +145,16 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         if (iBookmarked) {
             numBookmarks.setTextColor(getResources().getColor(R.color.liked));
             numBookmarks.setTypeface(null, Typeface.BOLD);//deafult is Typeface.NORMAL
+        }
+
+        if (attachment.length() > 1) {
+            //  ImageView img= ((ImageView)(findViewById(R.id.img)));
+            //  img.setImageResource(R.drawable.eyes);
+            new DownloadImageTask((ImageView) findViewById(R.id.img)).execute(attachment);
+        }
+
+        if (message.length()==0) {
+            ((TextView)(findViewById(R.id.message))).setPadding(0,0,0,0);
         }
 
 
@@ -231,7 +248,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                 }
             }
         } else {
-            SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks);
+            SerializableBookmark newBookmark = new SerializableBookmark(messageID, message, author, date, likes, iLiked, bookmarks,attachment);
             bookmarkList.add(newBookmark);
         }
 
@@ -300,5 +317,30 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         outtoRight.setDuration(duration);
         outtoRight.setInterpolator(new AccelerateInterpolator());
         return outtoRight;
+    }
+}
+
+class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+    ImageView bmImage;
+
+    public DownloadImageTask(ImageView bmImage) {
+        this.bmImage = bmImage;
+    }
+
+    protected Bitmap doInBackground(String... urls) {
+        String urldisplay = urls[0];
+        Bitmap mIcon11 = null;
+        try {
+            InputStream in = new java.net.URL(urldisplay).openStream();
+            mIcon11 = BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        return mIcon11;
+    }
+
+    protected void onPostExecute(Bitmap result) {
+        bmImage.setImageBitmap(result);
     }
 }

@@ -174,7 +174,7 @@ public class BluetoothActivity extends AppCompatActivity {
                                         NetworkingUtility.post("/msg/like/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
                                     } else if (data.substring(0,4).equals("BKMK")) {
                                         NetworkingUtility.getComments("/inbox/main/", token, 1, 1, "1150546131643551",data.substring(5,data.length()-1), "updateBookmarkFromBluetooth", new String[]{
-                                                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+                                                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
                                         });
                                         NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
                                     } else if (data.substring(0,4).equals("DISL")) {
@@ -283,7 +283,7 @@ public class BluetoothActivity extends AppCompatActivity {
                 }
             }
         } else {//create
-            SerializableBookmark newBookmark = new SerializableBookmark(NetworkingUtility.comments[0][1], NetworkingUtility.comments[0][2], NetworkingUtility.comments[0][0], date, numLikes, iLiked, numBookmarks+1);
+            SerializableBookmark newBookmark = new SerializableBookmark(NetworkingUtility.comments[0][1], NetworkingUtility.comments[0][2], NetworkingUtility.comments[0][0], date, numLikes, iLiked, numBookmarks+1, NetworkingUtility.comments[0][6]);
             bookmarkList.add(newBookmark);
         }
 
