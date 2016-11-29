@@ -43,16 +43,22 @@ public class NetworkingUtility {
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                RefreshableScrollView.addCommentsToFeed(false, false);
+                RefreshableScrollView.addCommentsToFeed(false, false, false, false);
                 return;
             case "addMoreToFeed":
-                RefreshableScrollView.addCommentsToFeed(true, false);
+                RefreshableScrollView.addCommentsToFeed(true, false, false, false);
                 return;
             case "fillChat":
-                RefreshableScrollView.addCommentsToFeed(false, true);
+                RefreshableScrollView.addCommentsToFeed(false, true, false, false);
+                return;
+            case "fillChatBefore":
+                RefreshableScrollView.addCommentsToFeed(false, true, false, true);
+                return;
+            case "fillChatThenAddMore":
+                RefreshableScrollView.addCommentsToFeed(false, true ,true, false);
                 return;
             case "addMoreToChat":
-                RefreshableScrollView.addCommentsToFeed(true, true);
+                RefreshableScrollView.addCommentsToFeed(true, true, false, false);
                 return;
             case "fillTiva":
                 BluetoothActivity.sendCommentsToTiva();
@@ -63,15 +69,14 @@ public class NetworkingUtility {
         }
     }
 
-    public static void getComments(final String urlEnd, final String token, final int max_messages, final int min_messages, final String group_id, final String start, final String methodKey, final String[] tags) {
+    public static void getComments(final String urlEnd, final String token, final boolean forward, final int max_messages, final int min_messages, final String group_id, final String start, final String methodKey, final String[] tags) {
         comments = null;//if not rewritten, will send back empty array
 
-        //Todo: consider when get less than max_messages
-        String newUrl = url + urlEnd + "?max_messages=" + max_messages + "&group_id=" + group_id + "&access_token="+token ;
+        String newUrl = url + urlEnd + "?max_messages=" + ((forward)?"":"-") + max_messages + "&group_id=" + group_id + "&access_token="+token ;
         if (!start.equals("")) {
             newUrl += "&start="+start;
         }
-        Log.d("Sending to this url", newUrl);
+       // Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
         JsonArrayRequest req = new JsonArrayRequest(newUrl,
                 new Response.Listener<JSONArray>() {
@@ -108,7 +113,7 @@ public class NetworkingUtility {
                                 callMethodOnFinished(methodKey);
                             } else {
                                 //keeps asking for 10 more until a maximum max of 60
-                                getComments(urlEnd, token, max_messages+10, min_messages, group_id, start, methodKey, tags);
+                                getComments(urlEnd, token, forward, max_messages+10, min_messages, group_id, start, methodKey, tags);
                                 Log.d("Debug","Not enough nondeleted messages.. asked for " + max_messages + " got " + response.length() + " ... asking for " + (max_messages+10)+ " now");
                             }
 

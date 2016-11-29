@@ -299,7 +299,13 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
                     if (!commentIsBookmark)
                         remove();
                     return true;
-
+                } else if (Math.abs(event.getX() - historicX) < 15 && Math.abs(event.getY() - historicY) < 15)  {
+                    //pressed
+                   // Log.d("Debug","Pressed");
+                    RefreshableScrollView.setIdOfChatTarget(messageID);
+                    MainPage.changeTabs(1);
+                    setPressed(false);
+                    return true;
                 }
                 setPressed(false);
                 return true;

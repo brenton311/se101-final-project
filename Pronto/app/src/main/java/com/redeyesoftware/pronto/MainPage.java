@@ -24,6 +24,7 @@ import com.facebook.login.LoginManager;
 public class MainPage extends AppCompatActivity {
 
     private static HomePagesAdapter mFragPagerAdapter;
+    private static ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +52,7 @@ public class MainPage extends AppCompatActivity {
 
 
         mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
-        ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -73,6 +74,10 @@ public class MainPage extends AppCompatActivity {
         //This method sets the toolbar as the app bar for the activity
         //By default, the action bar contains just the name of the app and an overflow menu.
         // The options menu initially contains just the Settings item.
+    }
+
+    public static void changeTabs(int pos) {
+        mViewPager.setCurrentItem(pos);
     }
 
     // Menu icons are inflated just as they were with actionbar
