@@ -9,7 +9,7 @@ import couchdb
 couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
 
 def compute_rank(num_likes, num_dislikes, num_bookmarks, time_delta):
-    return num_likes - 3 * num_dislikes + 10 * num_bookmarks - math.sqrt(time_delta)
+    return num_likes - 3 * num_dislikes + 10 * num_bookmarks - 0.1 * (time_delta)
  
 if __name__ == '__main__':
     group_id = '1150546131643551'
