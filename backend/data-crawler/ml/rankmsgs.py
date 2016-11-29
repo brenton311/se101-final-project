@@ -1,5 +1,5 @@
-import linearreg
-import vocab
+from ml import linearreg
+from ml import vocab
 
 import numpy as np
 import couchdb
@@ -62,7 +62,7 @@ def tokenize_msg(msg, vocab):
         if freq > 0:
             words_freq[word] = freq
 
-    tokenized_msg = {'_id': m['_id'], 'words_freq': words_freq}
+    tokenized_msg = {'words_freq': words_freq}
     return tokenized_msg
 
 def load_model_settings(db_name, group_id):

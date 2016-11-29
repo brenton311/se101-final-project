@@ -1,3 +1,5 @@
+from ml import rankmsgs
+
 import urllib2
 import urllib
 import gzip
@@ -9,6 +11,9 @@ import StringIO
 import requests
 import time
 import couchdb
+
+
+# from ml import rankmsgs as ranking
 
 couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
 
@@ -161,6 +166,8 @@ if __name__ == '__main__':
     # group_id = '1065671046884259'
 
     db_msgs = couch['msg_{}'.format(group_id)]
+    settings = rankmsgs.load_model_settings('ml_data', '1150546131643551')
+    weights = rankmsgs.load_dict_to_vector(settings['weights'])
 
     max_msgs = 30
     newest_time = find_newest_msg(db_msgs)
@@ -171,7 +178,7 @@ if __name__ == '__main__':
             oldest_updated = float('inf')
             new_msgs = []
             while oldest_updated > newest_time:
-                print('Getting new messages...')
+                # print('Getting new messages...')
                 new_data = download_latest_msgs(max_msgs, group_id)
                 # print(new_data)
 
@@ -188,16 +195,31 @@ if __name__ == '__main__':
             print(e)
 
         for x in new_msgs:
-            try:
-                user_name = get_user_name(x['author_id'], app_key)
-                print(u'[{}]: {}'.format(user_name, x['text']))
-            except Exception as e:
-                print('Error: {}'.format(e))
+            # try:
+            # print(x)
+            tokenized = rankmsgs.tokenize_msg(x, rankmsgs.vocab.vocab)['words_freq']
+            word_vector = rankmsgs.load_dict_to_vector(tokenized)
+            rank = rankmsgs.compute_rank(word_vector, weights)
+
+            # Debug
+            non_zero_vocab = []
+            if rank > 0:
+                for key in tokenized:
+                    value = tokenized[key]
+                    if value > 0:
+                        non_zero_vocab.append({key: value})
+
+            user_name = get_user_name(x['author_id'], app_key)
+            print(u'[{}]: {}'.format(user_name, x['text']))
+            print(non_zero_vocab)
+            # except Exception as e:
+            #     raise e
+            #     print('Error: {}'.format(e))
 
             # If any new messages come in, update the newest timestamp
             if len(new_msgs) > 0:
                 newest_time = get_newest_msg(new_msgs)
 
-            save_msgs(db_msgs, new_msgs)
+        save_msgs(db_msgs, new_msgs)
         
         time.sleep(1)
