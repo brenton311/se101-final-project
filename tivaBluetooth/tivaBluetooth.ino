@@ -294,11 +294,12 @@ void updateDisplay() {
   writeTextWithoutSplittingWords((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
 }
 
+
 void writeTextWithoutSplittingWords(String text) {
-  OrbitOledClear();
   text.trim();
   int charIndex = 0;
   int lineNumber = 0;
+  String formattedOutput = "";
   String line = "";
   int spacesLeftOnLine = maxCharsX;
   Serial.println(charIndex);
@@ -326,12 +327,17 @@ void writeTextWithoutSplittingWords(String text) {
         Serial.println(line);
         if (y + lineNumber >= 0) {
           if (y + lineNumber < maxCharsY) {
-            OrbitOledSetCursor(0, y + lineNumber);
-            OrbitOledPutString((char*) line.c_str());
+            //OrbitOledSetCursor(0, y + lineNumber);
+            //OrbitOledPutString((char*) line.c_str());
+            while (spacesLeftOnLine > 0) {
+              line += " ";
+              spacesLeftOnLine--;
+            }
+            formattedOutput += line;
           }
           else
           {
-            return;
+            break;
           }
         }
         lineNumber++;
@@ -354,12 +360,17 @@ void writeTextWithoutSplittingWords(String text) {
         Serial.println(line);
         if (y + lineNumber >= 0) {
           if (y + lineNumber < maxCharsY) {
-            OrbitOledSetCursor(0, y + lineNumber);
-            OrbitOledPutString((char*) line.c_str());
+            //OrbitOledSetCursor(0, y + lineNumber);
+            //OrbitOledPutString((char*) line.c_str());
+            while (spacesLeftOnLine > 0) {
+              line += " ";
+              spacesLeftOnLine--;
+            }
+            formattedOutput += line;
           }
           else
           {
-            return;
+            break;
           }
         }
         lineNumber++;
@@ -368,9 +379,17 @@ void writeTextWithoutSplittingWords(String text) {
       }
     }
   }
-  if (y + lineNumber < maxCharsY) {
-    OrbitOledSetCursor(0, y + lineNumber);
-    OrbitOledPutString((char*) line.c_str());
+  if (y + lineNumber >= 0 && y + lineNumber < maxCharsY) {
+    //OrbitOledSetCursor(0, y + lineNumber);
+    //OrbitOledPutString((char*) line.c_str());
+    while (spacesLeftOnLine > 0) {
+      line += " ";
+      spacesLeftOnLine--;
+    }
+    formattedOutput += line;
   }
+  OrbitOledClear();
+  OrbitOledSetCursor(0, 0);
+  OrbitOledPutString((char*) formattedOutput.c_str());
 }
 
