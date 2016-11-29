@@ -2,8 +2,10 @@ package com.redeyesoftware.pronto;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -126,8 +128,9 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                 me.linear.addView(cmt);
         }
         if (before) {
+            int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
+            targetView  = (Comment) me.linear.getChildAt(newIndexOfOldInitial+4);
             targetView.getParent().requestChildFocus(targetView, targetView);
-            me.scrollBy(0,-300);
         }else
              me.createProgressBarLayoutBottom();
         me.finishRefresh();
