@@ -1,5 +1,9 @@
-from ml import linearreg
-from ml import vocab
+try:
+    from ml import linearreg
+    from ml import vocab
+except:
+    import linearreg
+    import vocab
 
 import numpy as np
 import couchdb
