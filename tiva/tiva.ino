@@ -28,6 +28,7 @@ int msgReceiveIndex = 0;
 int msgReadIndex = 0;
 Comment* comments = new Comment[30];
 int numLinesRequiredForCurrentMsg = 0;
+
 /*Storing the original string and the JSON object is a bit too
 much for your Arduino - it will most likely use up all the memory.
 Therefore it is better to parse streams instead of strings*/

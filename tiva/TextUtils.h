@@ -15,8 +15,28 @@ struct Comment
     bool iBookmarked;
 };
 
-void writeTextWithoutSplittingWords(String text);
+/**
+ * @brief Parse a Comment from a JSON object
+ * @param commentJSON The JSON object representing the comment
+ * 
+ * @return The comment parsed from the JSON
+ */
 Comment processJSON(aJsonObject* commentJSON);
+
+/**
+ * @brief Write a string to the OLED display without splitting words
+ * @param text The string to be displayed
+ * 
+ */
+void writeTextWithoutSplittingWords(String text);
+
+/**
+ * @brief Calculates the number of OLED display vertical lines needed to 
+        display a given string.
+ * @param text The string to compute how many OLED lines it needs
+ * 
+ * @return The number of vertical lines needed
+ */
 int numberOfLEDlineRequired(String text);
 
 #endif // TEXT_UTILS_H

@@ -33,7 +33,13 @@ extern int msgReadIndex;
 extern Comment* comments;
 extern int numLinesRequiredForCurrentMsg;
 
-// Tiva util functions
+/**
+ * @brief Print a debug message to the serial monitor if DEBUG
+            is defined. Otherwise do nothing.
+ * @param str The data to be printed
+ * @param noNewline If false, append a new line at the end of the message. If
+                    true, don't append a new line at the end of the message
+ */
 template<typename T>
 void printDebugMsg(T str, bool noNewline = false)
 {
@@ -45,8 +51,18 @@ void printDebugMsg(T str, bool noNewline = false)
 #endif
 }
 
+/**
+ * @brief Read a pot's position between 0 and 100
+ * @param pin The pin the potentiometer is attached to
+ * 
+ * @return The pot's position mapped as an integer from 0 to 100. 
+            Where 0 is fully left, and 100 is fully right.
+ */
 int getPotPosition(int pin);
 
+/**
+ * @brief Update the bookmark/like status LEDs and the text on the OLED display
+ */
 void updateDisplay();
 
 
