@@ -17,6 +17,7 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
@@ -57,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.e("Login Success", loginResult.getAccessToken().getToken());
 
-                NetworkingUtility.post("/login", "access_token", loginResult.getAccessToken().getToken());
+                NetworkingUtility.post("/login/", new String[]{"access_token"}, new String[]{loginResult.getAccessToken().getToken()});
 
                 SharedPreferences.Editor editor = getSharedPreferences("PrefsFile", MODE_PRIVATE).edit();
                 editor.putString("accessToken", loginResult.getAccessToken().getToken());
@@ -87,6 +88,10 @@ public class LoginActivity extends AppCompatActivity {
         //Todo: remove the posting of access token each time
        // NetworkingUtility.post("/login/", "access_token", AccessToken.getCurrentAccessToken().getToken());
         return accessToken != null;
+    }
+
+    public static void logout() {
+        LoginManager.getInstance().logOut();
     }
 
     public static void setFacebookData()

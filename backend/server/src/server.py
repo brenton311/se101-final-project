@@ -118,6 +118,7 @@ def login():
 
     return jsonify(response)
 
+
 @application.route('/msg/like/', methods=['POST'])
 def like_msg():
     response = {'status': 'ok'}    
@@ -135,7 +136,8 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    db = couch['messages']
+    # TODO: Come up with a way to find message group id
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
     group_id = msg['group_id']
     print(msg_id)
@@ -195,7 +197,7 @@ def dislike_msg():
     #     return jsonify(response)
     
 
-    db = couch['messages']
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
 
     # Make sure the user is in the group where the message 
@@ -239,7 +241,7 @@ def bookmark_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    db = couch['messages']
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
 
     # Make sure the user is in the group where the message 
@@ -303,7 +305,7 @@ def search_msgs():
 
         # Limit the number of returned messages per queue
         max_messages = min(max_messages, 100)
-        db = couch['messages']
+        db = couch['msg_{}'.format(group_id)]
 
         # If no starting message is provided, start with the newest
         gen = None
@@ -342,6 +344,10 @@ def search_msgs():
         raise e
         return 'Invalid Parameters'
         # raise e
+
+@application.route('/inbox/feed/', methods=['GET'])
+def get_feed():
+    return redirect('/inbox/main/')
 
 @application.route("/inbox/main/", methods=['GET'])
 def get_msgs():
