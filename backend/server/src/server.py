@@ -136,17 +136,10 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    # TODO: Come up with a way to find message group id
     db = couch['msg_1150546131643551']
     msg = db[msg_id]
     group_id = msg['group_id']
     print(msg_id)
-
-    # Check if the user is in the group
-    # if group_id not in get_user_groups(fb_id):
-    #     response['status'] = 'error'
-    #     response['error-msg'] = 'You are not in the group!'
-    #     return jsonify(response)
 
     # Make sure the user is in the group where the message 
     # is published
@@ -181,7 +174,6 @@ def like_msg():
 def dislike_msg():
     msg_id = request.form.get('msg_id', '')
     access_token = request.form.get('access_token', None)
-    # group_id = request.args.get('group_id', '')
     
     response = {'status': 'ok'}    
     fb_id = verify_token(access_token, fb_key)
@@ -189,13 +181,6 @@ def dislike_msg():
         response['status'] = 'error'
         response['error-msg'] = 'Invalid token!'
         return jsonify(response)
-
-    # Check if the user is in the group
-    # if fb_id not in get_user_groups(fb_id):
-    #     response['status'] = 'error'
-    #     response['error-msg'] = 'You are not in the group!'
-    #     return jsonify(response)
-    
 
     db = couch['msg_1150546131643551']
     msg = db[msg_id]
@@ -233,7 +218,6 @@ def bookmark_msg():
     if access_token is None:
         response['status'] = 'error'
         response['error-msg'] = 'Invalid token!'
-    # group_id = request.args.get('group_id', '')
     
     fb_id = verify_token(access_token, fb_key)
     if fb_id is None:
@@ -273,6 +257,7 @@ def bookmark_msg():
         response['error-msg'] = 'Not in group!'
         return jsonify(response)
 
+# TODO: Update or deprecate this function
 @application.route("/inbox/search/", methods=['GET'])
 def search_msgs():
     try:
@@ -427,11 +412,29 @@ def get_msgs():
         # If no starting message is provided, start with the newest
         # TODO: Add check for specific group
         gen = None
-        if start_msg is not None:
-            gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
-        else:
-            gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
-        msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+        msgs = None
+        if max_messages > 0:
+            if start_msg is not None:
+                gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)
+            else:
+                gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)
+
+            msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+
+        # User wants the messages in reverse order
+        elif max_messages < 0:
+            if start_msg is not None:
+                gen = db.iterview('chats/getGroupMsgs', 20, endkey=start_msg, descending=True)
+            else:
+                response['status'] = 'error'
+                response['error-msg'] = 'Must specify start for reverse search!'
+                return jsonify(response)
+
+            
+            msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+            msgs.reverse()
+            msgs = msgs[:-max_messages]
+
         print(msgs)
         msgs = id_to_name(msgs)
 
