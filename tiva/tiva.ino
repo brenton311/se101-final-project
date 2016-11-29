@@ -78,6 +78,7 @@ void loop()
                 digitalWrite(bookmarkLED, LOW);
                 digitalWrite(likeLED, LOW);
                 numMsgs = 0;
+                y=0;
                 msgReceiveIndex = 0;
                 msgReadIndex = 0;
                 writeTextWithoutSplittingWords("Welcome to Pronto! Set the app to \"Tiva Mode\"");
@@ -164,8 +165,8 @@ void loop()
             comments[msgReadIndex].iLiked = !comments[msgReadIndex].iLiked;
             updateDisplay();
 
-            printDebugMsg("LIKE:", true);
-            printDebugMsg(comments[msgReadIndex].messageID);
+            Serial1.print("LIKE:");
+            Serial1.println(comments[msgReadIndex].messageID);
         }
         if (digitalRead(Buttons[0]) == LOW && ButtonStates[0])
         {
@@ -177,8 +178,8 @@ void loop()
             ButtonStates[1] = true;
             comments[msgReadIndex].iBookmarked = !comments[msgReadIndex].iBookmarked;
 
-            printDebugMsg("BKMK:", true);
-            printDebugMsg(comments[msgReadIndex].messageID);
+            Serial1.print("BKMK:");
+            Serial1.println(comments[msgReadIndex].messageID);
             updateDisplay();
         }
         if (digitalRead(Buttons[1]) == LOW && ButtonStates[1])

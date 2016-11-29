@@ -217,8 +217,8 @@ public class BluetoothActivity extends AppCompatActivity {
     }
 
     private void showMessage(String theMsg) {
-        //Toast msg = Toast.makeText(getBaseContext(), theMsg, (Toast.LENGTH_SHORT));
-        //msg.show();
+      //  Toast msg = Toast.makeText(getBaseContext(), theMsg, (Toast.LENGTH_SHORT));
+      //  msg.show();
     }
 
     @Override
