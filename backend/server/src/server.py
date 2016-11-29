@@ -118,6 +118,7 @@ def login():
 
     return jsonify(response)
 
+
 @application.route('/msg/like/', methods=['POST'])
 def like_msg():
     response = {'status': 'ok'}    
@@ -135,7 +136,8 @@ def like_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    db = couch['messages']
+    # TODO: Come up with a way to find message group id
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
     group_id = msg['group_id']
     print(msg_id)
@@ -195,7 +197,7 @@ def dislike_msg():
     #     return jsonify(response)
     
 
-    db = couch['messages']
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
 
     # Make sure the user is in the group where the message 
@@ -239,7 +241,7 @@ def bookmark_msg():
         response['error-msg'] = 'Invalid FB ID!'
         return jsonify(response)
 
-    db = couch['messages']
+    db = couch['msg_1150546131643551']
     msg = db[msg_id]
 
     # Make sure the user is in the group where the message 
@@ -303,7 +305,7 @@ def search_msgs():
 
         # Limit the number of returned messages per queue
         max_messages = min(max_messages, 100)
-        db = couch['messages']
+        db = couch['msg_{}'.format(group_id)]
 
         # If no starting message is provided, start with the newest
         gen = None
@@ -342,6 +344,54 @@ def search_msgs():
         raise e
         return 'Invalid Parameters'
         # raise e
+
+@application.route('/inbox/feed/', methods=['GET'])
+def get_feed():
+    try:
+        # TODO: add authentication check
+        group_id = request.args.get('group_id')
+        access_token = request.args.get('access_token', None)
+        max_messages = int(request.args.get('max_messages', 0))
+        start_msg = request.args.get('start', None)
+
+        # Limit the number of returned messages per queue
+        max_messages = min(max_messages, 100)
+        db = couch['msg_{}'.format(group_id)]
+
+        response = {'status': 'ok'}    
+
+        # Check if token is valid
+        fb_id = verify_token(access_token, fb_key)
+        if fb_id is None:
+            response['status'] = 'error'
+            response['error-msg'] = 'Invalid FB ID!'
+            return jsonify(response)
+
+        # Check if the user is in the group
+        groups = get_user_groups(fb_id)
+        print(groups)
+
+        if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
+            response['status'] = 'error'
+            response['error-msg'] = 'You are not in the group!'
+            return jsonify(response)
+
+        # If no starting message is provided, start with the newest
+        # TODO: Add check for specific group
+        gen = None
+        if start_msg is not None:
+            gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+        else:
+            gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+        msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+        print(msgs)
+        msgs = id_to_name(msgs)
+
+        return jsonify(msgs)
+
+    except Exception as e:
+        raise e
+
 
 @application.route("/inbox/main/", methods=['GET'])
 def get_msgs():
