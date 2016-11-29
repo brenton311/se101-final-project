@@ -2,8 +2,10 @@ package com.redeyesoftware.pronto;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,6 +23,15 @@ import static android.content.Context.MODE_PRIVATE;
  */
 
 public class RefreshableScrollView extends ScrollView implements View.OnTouchListener {
+
+
+    private static String idOfChatTarget = "";
+
+    public static void setIdOfChatTarget(String idOfChatTarget) {
+        RefreshableScrollView.idOfChatTarget = idOfChatTarget;
+    }
+
+    private boolean offsetAfter = false;
 
     private static RefreshableScrollView meFeed;
     private static RefreshableScrollView meChat;
@@ -78,6 +89,9 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         } else {
             meFeed = this;
         }
+        if (idOfChatTarget == "wasCreatedFromChatTarget" && isChat) {//from prev run
+            idOfChatTarget = "";
+        }
     }
 
 
@@ -88,12 +102,18 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
 
-    public static void addCommentsToFeed(boolean addingMore, boolean chat) {
+    public static void addCommentsToFeed(boolean addingMore, boolean chat, boolean thenAddMore, boolean before) {
         RefreshableScrollView me = (chat)?meChat:meFeed;
         if (addingMore) {
             me.linear.removeView(me.linear.getChildAt(me.linear.getChildCount() - 1));
         }
-        for (int i = (addingMore)?1:0; i < NetworkingUtility.comments.length; i++) {
+        Comment targetView  = (Comment) me.linear.getChildAt(0);//used to focus if before
+        if (me.offsetAfter)
+            targetView  = (Comment) me.linear.getChildAt(me.linear.getChildCount()-1);
+        if (before && NetworkingUtility.comments.length == 1) {//reached top
+            idOfChatTarget = "";
+        }
+        for (int i = (addingMore||before)?1:0; i < NetworkingUtility.comments.length; i++) {
             //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
             String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
             boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
@@ -106,10 +126,30 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
             Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6], me.isChat);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            me.linear.addView(cmt);
+            if (before || thenAddMore)//the former b/c need to apend to front; the latter b/c need to add in reverse order
+                me.linear.addView(cmt,0);
+            else
+                me.linear.addView(cmt);
         }
-        me.createProgressBarLayoutBottom();
+        if (me.offsetAfter) {
+            int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
+            targetView  = (Comment) me.linear.getChildAt(newIndexOfOldInitial+4);
+            targetView.getParent().requestChildFocus(targetView, targetView);
+        }
+        if (before) {
+            int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
+            targetView  = (Comment) me.linear.getChildAt(newIndexOfOldInitial+4);
+            targetView.getParent().requestChildFocus(targetView, targetView);
+        }else
+             me.createProgressBarLayoutBottom();
         me.finishRefresh();
+        if (me.offsetAfter)
+            me.offsetAfter = false;
+        if (thenAddMore) {
+            Comment cmt = (Comment) me.linear.getChildAt(me.linear.getChildCount() - 2);
+            me.addMore(cmt.messageID);
+            me.offsetAfter = true;
+        }
     }
 
     public static void removeCommentFromFeed(final int index) {
@@ -127,20 +167,35 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
     public void refresh() {
+        //Log.e("called", "yup");
         SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
-        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551","", "fill"+methodKeyEnd, new String[]{
-                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
-        });
-        linear.removeAllViews();
+        if (idOfChatTarget == "" || !isChat) {
+            //Log.d("normal refresh", "is " +idOfChatTarget);
+            NetworkingUtility.getComments(urlEnd, token, true, 30, 20, "1150546131643551", "", "fill" + methodKeyEnd, new String[]{
+                    "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
+            });
+            linear.removeAllViews();
+        } else if (idOfChatTarget == "wasCreatedFromChatTarget") {
+            Comment cmt = (Comment) linear.getChildAt(0);
+            NetworkingUtility.getComments(urlEnd, token, false, 30, 20, "1150546131643551", cmt.messageID, "fillChatBefore", new String[]{
+                    "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
+            });
+        } else {
+            NetworkingUtility.getComments(urlEnd, token, false, 10, 5, "1150546131643551", idOfChatTarget, "fillChatThenAddMore", new String[]{
+                    "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
+            });
+            linear.removeAllViews();
+            idOfChatTarget = "wasCreatedFromChatTarget";
+        }
     }
 
     private void addMore(String start) {
         SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551",start, "addMoreTo"+methodKeyEnd, new String[]{
+        NetworkingUtility.getComments(urlEnd, token, (idOfChatTarget == ""), 30, 20, "1150546131643551",start, "addMoreTo"+methodKeyEnd, new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
     }
@@ -319,7 +374,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             View view = getChildAt(getChildCount() - 1);
             int diff = (view.getBottom() - (getHeight() + getScrollY()));
             // if diff is zero, then the bottom has been reached
-            Log.d("Debug", "" + diff);
+            //Log.d("Debug", "" + diff);
             if (diff < 20)//bottom is at-120 instead of 0 b/c bottom padding is 120
             {
                 refreshing = true;

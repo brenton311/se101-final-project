@@ -19,10 +19,12 @@ import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 
+//Todo:Get toolbar to dissapear when scrolling down
 
 public class MainPage extends AppCompatActivity {
 
     private static HomePagesAdapter mFragPagerAdapter;
+    private static ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,7 @@ public class MainPage extends AppCompatActivity {
 
 
         mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
-        ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -74,6 +76,10 @@ public class MainPage extends AppCompatActivity {
         // The options menu initially contains just the Settings item.
     }
 
+    public static void changeTabs(int pos) {
+        mViewPager.setCurrentItem(pos);
+    }
+
     // Menu icons are inflated just as they were with actionbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -81,14 +87,18 @@ public class MainPage extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.toolbar_main, menu);
 
         // Get the MenuItem for the action item
-        MenuItem searchItem = menu.findItem(R.id.action_search);
+
+        //MenuItem searchItem = menu.findItem(R.id.action_search);
+
         //when the user clicks an action view's icon, the view's UI fills the toolbar
         //If you need to configure the action, do so in your activity's onCreateOptionsMenu() callback by calling the static getActionView()
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        /*SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(getApplicationContext(), SearchResultsActivity.class)));
-        searchView.setSubmitButtonEnabled(true);
+        searchView.setSubmitButtonEnabled(true);*/
+
         /*
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -128,14 +138,14 @@ public class MainPage extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
-            case R.id.action_settings:
+            /*case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
                 return true;
 
             case R.id.action_search:
                 // User chose the "Favorite" action, mark the current item
                 // as a favorite...
-                return true;
+                return true;*/
 
             case R.id.action_tiva_mode:
                 intent = new Intent(this, BluetoothActivity.class);
