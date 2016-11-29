@@ -34,14 +34,20 @@ public class FeedFragment extends Fragment {
     private final boolean TESTING_MODE  =false;
 
     private static FeedFragment me;
+    private boolean isChat = false;
 
     public FeedFragment() {
-        // Required empty public constructor
+
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isChat = getArguments().getBoolean("isChat", false);
+        Log.d("DEBUG isChAt",""+isChat);
+        //would just make a constructor with a bool isChat parameter, but that is bad practice for fragments
+        //standard is to use bundles and arguments like this
         me = this;
     }
 
@@ -53,7 +59,8 @@ public class FeedFragment extends Fragment {
         //return inflater.inflate(R.layout.fragment_feed, container, false);
 
         FrameLayout fragmentContent = new FrameLayout(getActivity());
-        RefreshableScrollView scroll = new RefreshableScrollView(getActivity());
+        RefreshableScrollView scroll = new RefreshableScrollView(getActivity(), isChat);
+        scroll.setPadding(0,0,0,120);
         scroll.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         RelativeLayout relLayout = new RelativeLayout(getActivity());
         LinearLayout linear = new LinearLayout(getActivity());
@@ -68,7 +75,7 @@ public class FeedFragment extends Fragment {
         if (TESTING_MODE) {
             for (int i=0; i<2; i++) {
                 //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean isBookmarked, boolean commentIsBookmark
-                Comment cmt = new Comment(getActivity(), i+"000", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10,false, false);
+                Comment cmt = new Comment(getActivity(), i+"000", "Message #"+i, "George Eisa", "Today at 8:32 am",5,false,10,false, false, "", false);
                 cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 linear.addView(cmt);
             }

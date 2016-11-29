@@ -1,5 +1,6 @@
 package com.redeyesoftware.pronto;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -36,11 +37,20 @@ public class HomePagesAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
+        Bundle args;
         switch (position) {
             case 0:
-                return new FeedFragment();
+                FeedFragment feed = new FeedFragment();
+                args = new Bundle();
+                args.putBoolean("isChat", false);
+                feed.setArguments(args);
+                return feed;
             case 1:
-                return new ChatFragment();
+                FeedFragment chat = new FeedFragment();
+                args = new Bundle();
+                args.putBoolean("isChat", true);
+                chat.setArguments(args);
+                return chat;
             case 2:
                 return new BookmarksFragment();
             default:

@@ -14,8 +14,9 @@ public class SerializableBookmark implements Serializable {
     private int likes = 0;
     private boolean iLiked = false;
     private int bookmarks = 0;
+    private String attachment = "";
 
-    public SerializableBookmark(String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks) {
+    public SerializableBookmark(String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, String attachment) {
         this.messageID = messageID;
         this.message = message;
         this.author = author;
@@ -23,6 +24,7 @@ public class SerializableBookmark implements Serializable {
         this.likes = likes;
         this.iLiked = iLiked;
         this.bookmarks = bookmarks;
+        this.attachment = attachment;
     }
 
     public boolean isiLiked() {
@@ -53,5 +55,7 @@ public class SerializableBookmark implements Serializable {
         return messageID;
     }
 
-
+    public String getAttachment() {
+        return attachment;
+    }
 }

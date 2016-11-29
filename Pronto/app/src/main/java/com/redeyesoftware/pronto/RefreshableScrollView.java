@@ -22,7 +22,11 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class RefreshableScrollView extends ScrollView implements View.OnTouchListener {
 
-    private static RefreshableScrollView me;
+    private static RefreshableScrollView meFeed;
+    private static RefreshableScrollView meChat;
+    private boolean isChat = false; //feed if not chat
+    private String urlEnd = "/inbox/feed/";
+    private String methodKeyEnd = "Feed";
     private float startY = -1, lastY = -1;
     private final int dragLength = 300;//min length of drag to reload
     private final int topMargin = 400;//top margin of progress
@@ -51,10 +55,31 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         init();
     }
 
+    public RefreshableScrollView(Context context, boolean isChat) {
+        super(context);
+        parentAcivity = context;
+        this.isChat = isChat;
+        if (isChat) {
+            Log.d("Deebug","chatt");
+            urlEnd = "/inbox/main/";
+            methodKeyEnd = "Chat";
+        }else {
+            Log.d("Deebug","feed");
+            urlEnd = "/inbox/feed/";
+            methodKeyEnd = "Feed";
+        }
+        init();
+    }
+
     private void init() {
         setOnTouchListener(this);
-        me = this;
+        if (isChat) {
+            meChat =this;
+        } else {
+            meFeed = this;
+        }
     }
+
 
     public void setUpLayout(RelativeLayout content_rel_layout, LinearLayout linear) {
         this.content_rel_layout = content_rel_layout;
@@ -63,8 +88,12 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
 
-    public static void addCommentsToFeed() {
-        for (int i = 0; i < NetworkingUtility.comments.length; i++) {
+    public static void addCommentsToFeed(boolean addingMore, boolean chat) {
+        RefreshableScrollView me = (chat)?meChat:meFeed;
+        if (addingMore) {
+            me.linear.removeView(me.linear.getChildAt(me.linear.getChildCount() - 1));
+        }
+        for (int i = (addingMore)?1:0; i < NetworkingUtility.comments.length; i++) {
             //Log.d("long timsetamp",NetworkingUtility.comments[i][3]);
             String time = TimeStampConverter.getDate(Long.parseLong(NetworkingUtility.comments[i][3]));
             boolean iLiked = NetworkingUtility.comments[i][4].indexOf(LoginActivity.getId()) != -1;
@@ -75,35 +104,45 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             if (numBookmarks>0) numBookmarks++;
             if (numLikes==0 && NetworkingUtility.comments[i][4].length()>4) numLikes=1;
             if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
-            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false);
+            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6], me.isChat);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }
+        me.createProgressBarLayoutBottom();
         me.finishRefresh();
     }
 
     public static void removeCommentFromFeed(final int index) {
-        if (index<0||index >= me.linear.getChildCount()) {
+        //Todo: make this workfor chat if want to implement deleting
+        if (index<0||index >= meFeed.linear.getChildCount()) {
             Log.d("ERROR", "Tried to delete element at invalid index");
             return;
         }
-        ((MainPage)me.parentAcivity).runOnUiThread(new Runnable() {
+        ((MainPage)meFeed.parentAcivity).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                me.linear.removeView(me.linear.getChildAt(index));//index needed to be final to be used by this inner class
+                meFeed.linear.removeView(meFeed.linear.getChildAt(index));//index needed to be final to be used by this inner class
             }
         });
     }
 
-    public static void refresh() {
-        SharedPreferences prefs = me.parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+    public void refresh() {
+        SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551", "fillFeed", new String[]{
-                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks"
+        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551","", "fill"+methodKeyEnd, new String[]{
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
-        me.linear.removeAllViews();
+        linear.removeAllViews();
+    }
+
+    private void addMore(String start) {
+        SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+        String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
+        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551",start, "addMoreTo"+methodKeyEnd, new String[]{
+                "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
+        });
     }
 
    /* @Override
@@ -122,15 +161,15 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     public boolean onTouch(View v, MotionEvent event) {
         ScrollView scroll = (ScrollView) v;
         if (scroll.getScrollY() == 0) {//if at top of screen
-            Log.i("Touch action", ""+event.getAction());
+            //Log.i("Touch action", ""+event.getAction());
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    Log.i("Touch action", "down");
+                    //Log.i("Touch action", "down");
                     startY = event.getY();
                     lastY = startY;
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    Log.i("Touch action", "move");
+                    //Log.i("Touch action", "move");
                     if (startY == -1) {
                         //ACTION_DOWN Doesnt seem to be called when comments fill screen (when not in testable mode)
                         //so had to implement this if block and reset startY to -1 ater drag finished
@@ -140,7 +179,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                     }
                     if (!refreshing && event.getY() > lastY) {
                         lastY = event.getY();
-                        Log.i("Drag length", ""+(event.getY() - startY));
+                        //Log.i("Drag length", ""+(event.getY() - startY));
                         if (event.getY() - startY <= dragLength) {
                             double percent = (event.getY() - startY) / dragLength;
                             double weight;
@@ -180,7 +219,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
                     //if finger up and not refreshing, hide load and reset linear height
                     startY = -1;
                     if (!refreshing) {
-                        Log.i("Debug", "action up " + event.getY());
+                        //Log.i("Debug", "action up " + event.getY());
                         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) progress.getLayoutParams();
                         params.weight = 2;
                         progress.setLayoutParams(params);
@@ -254,6 +293,42 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         rightParams.topMargin = topMargin;
 
         right.setLayoutParams(rightParams);
+    }
+
+    private void createProgressBarLayoutBottom() {
+        ProgressBar progressBottom = new ProgressBar(parentAcivity);//, null, android.R.attr.progressBarStyleHorizontal);
+        progressBottom.setProgress(100);
+        progressBottom.setIndeterminate(true);
+        //In indeterminate mode, the progress bar shows a cyclic animation without an indication of progress.
+        progressBottom.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary),android.graphics.PorterDuff.Mode.MULTIPLY);
+        linear.addView(progressBottom);
+
+        LinearLayout.LayoutParams progressParams = (LinearLayout.LayoutParams) progressBottom.getLayoutParams();
+        progressParams.weight = 0;
+        progressParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        progressParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        //progressParams.topMargin = topMargin;
+        progressBottom.setLayoutParams(progressParams);
+
+    }
+
+    @Override
+    public  void onScrollChanged (int l, int t, int oldl, int oldt) {
+        if (!refreshing) {
+            super.onScrollChanged(l, t, oldl, oldt);
+            View view = getChildAt(getChildCount() - 1);
+            int diff = (view.getBottom() - (getHeight() + getScrollY()));
+            // if diff is zero, then the bottom has been reached
+            Log.d("Debug", "" + diff);
+            if (diff < 20)//bottom is at-120 instead of 0 b/c bottom padding is 120
+            {
+                refreshing = true;
+                Log.d("Debug", "Bottom has been reached");
+                Comment cmt = (Comment) linear.getChildAt(linear.getChildCount() - 2);
+                //-2 because last child is loading bar
+                addMore(cmt.messageID);
+            }
+        }
     }
 
 }

@@ -22,6 +22,8 @@ import com.facebook.login.LoginManager;
 
 public class MainPage extends AppCompatActivity {
 
+    private static HomePagesAdapter mFragPagerAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,12 +49,12 @@ public class MainPage extends AppCompatActivity {
 
 
 
-        final HomePagesAdapter mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
+        mFragPagerAdapter = new HomePagesAdapter(getSupportFragmentManager());
         ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mFragPagerAdapter);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageSelected(int index) {mFragPagerAdapter.notifyDataSetChanged();}
+            public void onPageSelected(int index) {updateFragments();}
             @Override
             public void onPageScrolled(int arg0, float arg1, int arg2) {}
             @Override
@@ -153,6 +155,10 @@ public class MainPage extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    public static void updateFragments() {
+        mFragPagerAdapter.notifyDataSetChanged();
     }
 
 }
