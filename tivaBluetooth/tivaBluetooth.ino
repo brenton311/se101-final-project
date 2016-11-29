@@ -38,8 +38,8 @@ struct comment {
 };
 
 // Found through experimentation
-const int maxCharsX = 17;
-const int maxCharsY = 5;
+const int maxCharsX = 16;
+const int maxCharsY = 4;
 
 String msg;
 int oldPotPosition = 0;
@@ -90,9 +90,10 @@ void setup()
     SwitchStates[i] = digitalRead(Switches[i]);
   }
 
-  OrbitOledClear();
-  OrbitOledSetCursor(0, 0);
-  OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
+  Serial.println("start");
+  delay(1000);
+  writeTextWithoutSplittingWords("Welcome to Pronto! Set the app to \"Tiva Mode\"");
+  Serial.println("done");
 }
 
 comment processJSON(aJsonObject *commentJSON)
@@ -175,9 +176,7 @@ void loop()
         numMsgs = 0;
         msgReceiveIndex = 0;
         msgReadIndex = 0;
-        OrbitOledClear();
-        OrbitOledSetCursor(0, 0);
-        OrbitOledPutString((char*)"Welcome to Pronto! Set the app to \"Tiva Mode\"");
+        writeTextWithoutSplittingWords("Welcome to Pronto! Set the app to \"Tiva Mode\"");
       }
     }
     else
@@ -251,13 +250,16 @@ void loop()
       ButtonStates[1] = false;
     }
 
+
+
     // Display all the messages to the screen in the correct order
     // Only displayed when pot position changes to prevent screen flicker
     // Get the desired cursor y location
     int newPotPosition = getPotPosition(Potentiometer);
     if (newPotPosition != oldPotPosition)
     {
-      y = map(newPotPosition, 0, 100, -numMsgs - 1, maxCharsY);
+      y = map(newPotPosition, 0, 100, 0, -5);
+      Serial.println(y);
       oldPotPosition = newPotPosition;
       updateDisplay();
     }
@@ -289,10 +291,86 @@ void updateDisplay() {
     digitalWrite(bookmarkLED, LOW);
   }
 
-  OrbitOledClear();
-  OrbitOledSetCursor(0, y);
-  OrbitOledPutString((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
-
+  writeTextWithoutSplittingWords((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
 }
 
+void writeTextWithoutSplittingWords(String text) {
+  OrbitOledClear();
+  text.trim();
+  int charIndex = 0;
+  int lineNumber = 0;
+  String line = "";
+  int spacesLeftOnLine = maxCharsX;
+  Serial.println(charIndex);
+  while (charIndex < text.length() )
+  {
+    Serial.println(charIndex);
+    int newCharIndex = text.indexOf(" ", charIndex);
+    if (newCharIndex == -1) {
+      newCharIndex = text.length();
+    }
+    String word = text.substring(charIndex, newCharIndex);
+    Serial.println(word);
+    int wordLength = newCharIndex - charIndex;
+    if (spacesLeftOnLine == maxCharsX) {
+      Serial.println("1");
+      //if first word on line; just need to fir word
+      if (spacesLeftOnLine >= wordLength) {
+        Serial.println("11");
+        line = word;
+        charIndex = newCharIndex + 1;
+        spacesLeftOnLine -= wordLength;
+      } else {
+        Serial.println("12");
+        line =  word.substring(0, spacesLeftOnLine);
+        Serial.println(line);
+        if (y + lineNumber >= 0) {
+          if (y + lineNumber < maxCharsY) {
+            OrbitOledSetCursor(0, y + lineNumber);
+            OrbitOledPutString((char*) line.c_str());
+          }
+          else
+          {
+            return;
+          }
+        }
+        lineNumber++;
+        line = "";
+        spacesLeftOnLine = maxCharsX;
+        charIndex = charIndex + spacesLeftOnLine;
+      }
+    } else {
+      Serial.println("2");
+      //need to fit space + word
+      if (spacesLeftOnLine >= 1 + wordLength) {
+        Serial.println("21");
+        line += " " + word;
+        charIndex = newCharIndex + 1;
+        spacesLeftOnLine -= 1 + wordLength;
+      }
+      else
+      {
+        Serial.println("22");
+        Serial.println(line);
+        if (y + lineNumber >= 0) {
+          if (y + lineNumber < maxCharsY) {
+            OrbitOledSetCursor(0, y + lineNumber);
+            OrbitOledPutString((char*) line.c_str());
+          }
+          else
+          {
+            return;
+          }
+        }
+        lineNumber++;
+        line = "";
+        spacesLeftOnLine = maxCharsX;
+      }
+    }
+  }
+  if (y + lineNumber < maxCharsY) {
+    OrbitOledSetCursor(0, y + lineNumber);
+    OrbitOledPutString((char*) line.c_str());
+  }
+}
 
