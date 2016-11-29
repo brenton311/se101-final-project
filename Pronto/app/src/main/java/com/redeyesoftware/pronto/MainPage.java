@@ -19,6 +19,7 @@ import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 
+//Todo:Get toolbar to dissapear when scrolling down
 
 public class MainPage extends AppCompatActivity {
 
