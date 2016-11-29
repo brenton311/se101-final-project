@@ -25,7 +25,8 @@ const uint32_t Potentiometer = PE_3;
 extern int dxcoOledFontCur;
 extern int dycoOledFontCur;
 
-struct comment
+// Universal way to store comment (message) data
+struct Comment
 {
     String messageID;
     String message;
@@ -34,17 +35,17 @@ struct comment
     boolean iBookmarked;
 };
 
-// Found through experimentation
+// The maximum number of constants that can fix on the
+// X and Y axes. Found through experimentation
 const int maxCharsX = 16;
 const int maxCharsY = 4;
 
-String msg;
 int oldPotPosition = 0;
 
 int numMsgs = 0;
 int msgReceiveIndex = 0;
 int msgReadIndex = 0;
-comment* comments = new comment[30];
+Comment* comments = new Comment[30];
 int numLinesRequiredForCurrentMsg = 0;
 
 int y = 0;
@@ -64,16 +65,24 @@ int getPotPosition(int pin)
     return map(value, 0, 4096, 0, 100);
 }
 
+void printDebugMsg(String str, bool noNewline=false)
+{
+#ifdef DEBUG
+    if(noNewline)
+        Serial.print(str);
+    else
+        Serial.println(str);
+#endif
+}
+
 void setup()
 {
+    // Serial1 = Bluetooth module
+    // Serial = USB port on Tiva
     Serial1.begin(9600);
-    Serial.begin(19200); // start serial communication at 9600bps
-    OrbitOledInit();
+    Serial.begin(19200);
 
-#ifdef DEBUG
-    Serial.println(dxcoOledFontCur);
-    Serial.println(dycoOledFontCur);
-#endif
+    OrbitOledInit();
 
     pinMode(likeLED, OUTPUT);
     pinMode(bookmarkLED, OUTPUT);
@@ -97,7 +106,7 @@ void setup()
     writeTextWithoutSplittingWords("Welcome to Pronto! Set the app to \"Tiva Mode\"");
 }
 
-comment processJSON(aJsonObject* commentJSON)
+Comment processJSON(aJsonObject* commentJSON)
 {
     aJsonObject* authorObject = aJson.getObjectItem(commentJSON, "author_id");
     aJsonObject* msgIdObject = aJson.getObjectItem(commentJSON, "msg_id");
@@ -126,15 +135,11 @@ comment processJSON(aJsonObject* commentJSON)
     String id = "";
     if (!msgIdObject)
     {
-#ifdef DEBUG
-        Serial.println("Missing data in JSON");
-#endif
+        printDebugMsg("Missing data in JSON");
     }
     else if (msgIdObject->type != aJson_String)
     {
-#ifdef DEBUG
-        Serial.println("Invalid data type in JSON");
-#endif
+        printDebugMsg("Invalid data type in JSON");
     }
     else
     {
@@ -144,15 +149,11 @@ comment processJSON(aJsonObject* commentJSON)
     String text = "";
     if (!textObject)
     {
-#ifdef DEBUG
-        Serial.println("Missing data in JSON");
-#endif
+        printDebugMsg("Missing data in JSON");
     }
     else if (textObject->type != aJson_String)
     {
-#ifdef DEBUG
-        Serial.println("Invalid data type in JSON");
-#endif
+        printDebugMsg("Invalid data type in JSON");
     }
     else
     {
@@ -162,15 +163,11 @@ comment processJSON(aJsonObject* commentJSON)
     bool liked = false;
     if (!likedObject)
     {
-#ifdef DEBUG
-        Serial.println("Missing data in JSON");
-#endif
+        printDebugMsg("Missing data in JSON");
     }
     else if (likedObject->type != aJson_True && likedObject->type != aJson_False)
     {
-#ifdef DEBUG
-        Serial.println("Invalid data type in JSON");
-#endif
+        printDebugMsg("Invalid data type in JSON");
     }
     else
     {
@@ -181,15 +178,11 @@ comment processJSON(aJsonObject* commentJSON)
     bool bookmarked = false;
     if (!bookmarkedObject)
     {
-#ifdef DEBUG
-        Serial.println("Missing data in JSON");
-#endif
+        printDebugMsg("Missing data in JSON");
     }
     else if (bookmarkedObject->type != aJson_True && bookmarkedObject->type != aJson_False)
     {
-#ifdef DEBUG
-        Serial.println("Invalid data type in JSON");
-#endif
+        printDebugMsg("Invalid data type in JSON");
     }
     else
     {
@@ -197,7 +190,7 @@ comment processJSON(aJsonObject* commentJSON)
         bookmarked = bookmarkedObject->valuestring;
     }
 
-    struct comment cmt = {.messageID = id,
+    struct Comment cmt = {.messageID = id,
         .message = text,
         .author = author,
         .iLiked = liked,
@@ -228,9 +221,7 @@ void loop()
             aJsonObject* commentJSONArray = aJson.parse(&json_stream);
             if (!commentJSONArray)
             {
-#ifdef DEBUG
-                Serial.println("Missing data in JSON");
-#endif
+                printDebugMsg("Missing data in JSON");
                 return;
             }
             aJsonObject* commentJSON = commentJSONArray->child;
@@ -245,10 +236,8 @@ void loop()
             // and all values referenced by it)
             aJson.deleteItem(commentJSONArray);
 
-#ifdef DEBUG
-            Serial.print("msgs ");
-            Serial.println(numMsgs);
-#endif
+            printDebugMsg("msgs ", true);
+            printDebugMsg(String(numMsgs));
 
             if (numMsgs > 0)
             {
@@ -281,11 +270,11 @@ void loop()
         }
 
         state = digitalRead(Switches[1]);
-#ifdef DEBUG
-        Serial.print("vals ");
-        Serial.println(state);
-        Serial.println(SwitchStates[1]);
-#endif
+    
+        printDebugMsg("vals ", true);
+        printDebugMsg(String(state));
+        printDebugMsg(String(SwitchStates[1]));
+
         if (state != SwitchStates[1])
         {
             SwitchStates[1] = state;
@@ -307,10 +296,9 @@ void loop()
             ButtonStates[0] = true;
             comments[msgReadIndex].iLiked = !comments[msgReadIndex].iLiked;
             updateDisplay();
-#ifdef DEBUG
-            Serial1.print("LIKE:");
-            Serial1.println(comments[msgReadIndex].messageID);
-#endif
+
+            printDebugMsg("LIKE:", true);
+            printDebugMsg(String(comments[msgReadIndex].messageID));
         }
         if (digitalRead(Buttons[0]) == LOW && ButtonStates[0])
         {
@@ -321,10 +309,9 @@ void loop()
         {
             ButtonStates[1] = true;
             comments[msgReadIndex].iBookmarked = !comments[msgReadIndex].iBookmarked;
-#ifdef DEBUG
-            Serial1.print("BKMK:");
-            Serial1.println(comments[msgReadIndex].messageID);
-#endif
+
+            printDebugMsg("BKMK:", true);
+            printDebugMsg(String(comments[msgReadIndex].messageID));
             updateDisplay();
         }
         if (digitalRead(Buttons[1]) == LOW && ButtonStates[1])
@@ -362,13 +349,11 @@ void updateDisplay()
     // The min pos is all messages just off the screen (top)
     // The max pos is all message just off the screen (bottom)
 
-#ifdef DEBUG
-    Serial.print(y);
-    Serial.print(" ");
-    Serial.print(msgReadIndex);
-    Serial.print(" ");
-    Serial.println(comments[msgReadIndex].message);
-#endif
+    printDebugMsg(y, true);
+    printDebugMsg(" ", true);
+    printDebugMsg(String(msgReadIndex), true);
+    printDebugMsg(" ", true);
+    printDebugMsg(String(comments[msgReadIndex].message));
 
     if (comments[msgReadIndex].iLiked)
     {
@@ -414,15 +399,11 @@ void writeTextWithoutSplittingWords(String text)
         int wordLength = newCharIndex - charIndex;
         if (spacesLeftOnLine == maxCharsX)
         {
-#ifdef DEBUG
-            Serial.println("1");
-#endif
+            printDebugMsg("1");
             // if first word on line; just need to for word
             if (spacesLeftOnLine >= wordLength)
             {
-#ifdef DEBUG
-                Serial.println("11");
-#endif
+                printDebugMsg("11");
                 line = word;
                 charIndex = newCharIndex + 1;
                 spacesLeftOnLine -= wordLength;
@@ -431,9 +412,7 @@ void writeTextWithoutSplittingWords(String text)
             {
                 // Serial.println("12");
                 line = word.substring(0, spacesLeftOnLine);
-#ifdef DEBUG
-                Serial.println(line);
-#endif
+                printDebugMsg(line);
                 if (y + lineNumber >= 0)
                 {
                     if (y + lineNumber < maxCharsY)
@@ -460,25 +439,22 @@ void writeTextWithoutSplittingWords(String text)
         }
         else
         {
-#ifdef DEBUG
-            Serial.println("2");
-#endif
+            printDebugMsg("2");
+
             // need to fit space + word
             if (spacesLeftOnLine >= 1 + wordLength)
             {
-#ifdef DEBUG
-                Serial.println("21");
-#endif            
+                printDebugMsg("21");
+
                 line += " " + word;
                 charIndex = newCharIndex + 1;
                 spacesLeftOnLine -= 1 + wordLength;
             }
             else
             {
-#ifdef DEBUG
-                Serial.println("22");
-                Serial.println(line);
-#endif
+                printDebugMsg("22");
+                printDebugMsg(line);
+
                 if (y + lineNumber >= 0)
                 {
                     if (y + lineNumber < maxCharsY)
