@@ -19,6 +19,7 @@ def ols_reg(features, outputs):
 
 if __name__ == '__main__':
     data = load_dataset()
+    print(data)
     weights = ols_reg(data[0], data[1])
     print(weights)
     print(0.6 * weights[1] + weights[0])

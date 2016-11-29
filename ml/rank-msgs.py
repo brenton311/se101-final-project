@@ -77,28 +77,38 @@ def save_model_settings(db_name, setttings):
     db.save(settings)
     
 def compute_rank(word_vector, weights_vector):
-    return np.dot(word_vector, weights_vector[1]) #+ weights[0])
+    # print('Computing...')
+    # print(word_vector.ravel())
+    # print(weights_vector.ravel())
+    return np.vdot(weights_vector.ravel(), word_vector.ravel()) #+ weights[0])
 
 def load_dict_to_vector(to_convert):
     weights_list = list(to_convert.values())
-    weights = np.mat(weights_list).reshape(len(weights_list), 1)
+    weights = np.array(weights_list).reshape(len(weights_list), 1)
     return weights
 
-
+def save_rank(msg_id, db, rank):
+    msg = db[msg_id]
+    msg['score'] = rank
+    db.save(msg)
 
 if __name__ == '__main__':
     msg_db = couch['msg_1150546131643551']
     msgs = load_messages(msg_db.name)
     settings = load_model_settings('ml_data', '1150546131643551')
+
     weights = load_dict_to_vector(settings['weights'])
 
     for m in msgs:
         tokenized = tokenize_msg(m, vocab.vocab)['words_freq']
         word_vector = load_dict_to_vector(tokenized)
         rank = compute_rank(word_vector, weights)
-        print(rank)
+        save_rank(m['_id'], msg_db, rank)
 
-        # rank_msg(msg, settings['weights'])
-    # tokenized_msgs = tokenize_msgs(msgs, vocab.vocab)
-    # for msg in tokenized_msgs:
-        # print(msg['words_freq'])
+        # Debug
+        if rank > 0:
+            print(rank, m)
+            for key in tokenized:
+                value = tokenized[key]
+                if value > 0:
+                    print(key, value)
