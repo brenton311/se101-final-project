@@ -113,6 +113,7 @@ public class BluetoothActivity extends AppCompatActivity {
             showMessage("This device does not support Bluetooth");
         }
 
+        //Todo: fix the bug with bluetooth disabled
         if(!mBluetoothAdapter.isEnabled()) {
             Intent enableBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBluetooth, 0);
