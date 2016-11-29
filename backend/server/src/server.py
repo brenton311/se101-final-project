@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import requests
+import math
 import couchdb
 import json
 
@@ -365,7 +366,10 @@ def get_feed():
         # TODO: Add check for specific group
         gen = None
         if start_msg is not None:
-            gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+            msg_to_start = db[start_msg]
+            print('Search for:', msg_to_start)
+            msg_to_start = msg_to_start['running_score'] + msg_to_start['score']
+            gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, startkey=msg_to_start, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
             gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
@@ -433,7 +437,7 @@ def get_msgs():
             
             msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
             msgs.reverse()
-            msgs = msgs[:math.min(-max_messages, len(msgs) )]
+            msgs = msgs[:min(-max_messages, len(msgs) )]
 
         print(msgs)
         msgs = id_to_name(msgs)
