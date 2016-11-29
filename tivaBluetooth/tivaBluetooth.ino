@@ -26,9 +26,6 @@ extern int    dxcoOledFontCur;
 extern int    dycoOledFontCur;
 
 
-extern int    dxcoOledFontCur;
-extern int    dycoOledFontCur;
-
 struct comment {
   String messageID;
   String message;
@@ -48,6 +45,7 @@ int numMsgs = 0;
 int msgReceiveIndex = 0;
 int msgReadIndex = 0;
 comment *comments = new comment[30];
+int numLinesRequiredForCurrentMsg = 0;
 
 int y = 0;
 
@@ -199,6 +197,10 @@ void loop()
       Serial.print("msgs ");
       Serial.println(numMsgs);
       if (numMsgs > 0) {
+        numLinesRequiredForCurrentMsg =
+          numberOfLEDlineRequired(comments[msgReadIndex].author
+                                  + ": "
+                                  + comments[msgReadIndex].message);
         updateDisplay();
       }
     }
@@ -212,6 +214,13 @@ void loop()
       if (msgReadIndex < 0) {
         msgReadIndex = 0;
       }
+      numLinesRequiredForCurrentMsg =
+          numberOfLEDlineRequired(comments[msgReadIndex].author 
+          + ": "
+          + comments[msgReadIndex].message);
+      y =0;
+      //print message from start initially,
+      //regradless of pot position
       updateDisplay();
     }
 
@@ -225,6 +234,13 @@ void loop()
       if (msgReadIndex >= numMsgs) {
         msgReadIndex = numMsgs - 1;
       }
+      numLinesRequiredForCurrentMsg =
+          numberOfLEDlineRequired(comments[msgReadIndex].author 
+          + ": "
+          + comments[msgReadIndex].message);
+      y=0;
+      //print message from start initially,
+      //regradless of pot position
       updateDisplay();
     }
 
@@ -258,7 +274,11 @@ void loop()
     int newPotPosition = getPotPosition(Potentiometer);
     if (newPotPosition != oldPotPosition)
     {
-      y = map(newPotPosition, 0, 100, 0, -5);
+      if (numLinesRequiredForCurrentMsg <= maxCharsY) {
+        y=0;
+      } else {
+        y = map(newPotPosition, 0, 100, 0, -(1+numLinesRequiredForCurrentMsg-maxCharsY));
+      }
       Serial.println(y);
       oldPotPosition = newPotPosition;
       updateDisplay();
@@ -291,7 +311,9 @@ void updateDisplay() {
     digitalWrite(bookmarkLED, LOW);
   }
 
-  writeTextWithoutSplittingWords((char*) (comments[msgReadIndex].author + ": " + comments[msgReadIndex].message).c_str());
+  writeTextWithoutSplittingWords(comments[msgReadIndex].author
+                                 + ": "
+                                 + comments[msgReadIndex].message);
 }
 
 
@@ -315,7 +337,7 @@ void writeTextWithoutSplittingWords(String text) {
     int wordLength = newCharIndex - charIndex;
     if (spacesLeftOnLine == maxCharsX) {
       Serial.println("1");
-      //if first word on line; just need to fir word
+      //if first word on line; just need to for word
       if (spacesLeftOnLine >= wordLength) {
         Serial.println("11");
         line = word;
@@ -392,4 +414,45 @@ void writeTextWithoutSplittingWords(String text) {
   OrbitOledSetCursor(0, 0);
   OrbitOledPutString((char*) formattedOutput.c_str());
 }
+
+
+int numberOfLEDlineRequired(String text) {
+  text.trim();
+  int charIndex = 0;
+  int lineNumber = 0;
+  int spacesLeftOnLine = maxCharsX;
+  while (charIndex < text.length() )
+  {
+    int newCharIndex = text.indexOf(" ", charIndex);
+    if (newCharIndex == -1) {
+      newCharIndex = text.length();
+    }
+    int wordLength = newCharIndex - charIndex;
+    if (spacesLeftOnLine == maxCharsX) {
+      if (spacesLeftOnLine >= wordLength) {
+        charIndex = newCharIndex + 1;
+        spacesLeftOnLine -= wordLength;
+      } else {
+        lineNumber++;
+        spacesLeftOnLine = maxCharsX;
+        charIndex = charIndex + spacesLeftOnLine;
+      }
+    } else {
+      if (spacesLeftOnLine >= 1 + wordLength) {
+        charIndex = newCharIndex + 1;
+        spacesLeftOnLine -= 1 + wordLength;
+      }
+      else
+      {
+        lineNumber++;
+        spacesLeftOnLine = maxCharsX;
+      }
+    }
+  }
+  if (spacesLeftOnLine != maxCharsX) {
+    lineNumber++;
+  }
+  return lineNumber;
+}
+
 
