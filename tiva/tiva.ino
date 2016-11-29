@@ -65,7 +65,9 @@ int getPotPosition(int pin)
     return map(value, 0, 4096, 0, 100);
 }
 
-void printDebugMsg(String str, bool noNewline=false)
+
+template<typename T>
+void printDebugMsg(T str, bool noNewline=false)
 {
 #ifdef DEBUG
     if(noNewline)
@@ -117,15 +119,11 @@ Comment processJSON(aJsonObject* commentJSON)
     String author = "";
     if (!authorObject)
     {
-#ifdef DEBUG
-        Serial.println("Missing data in JSON");
-#endif
+        printDebugMsg("Missing data in JSON");
     }
     else if (authorObject->type != aJson_String)
     {
-#ifdef DEBUG
-        Serial.println("Invalid data type in JSON");
-#endif
+        printDebugMsg("Invalid data type in JSON");
     }
     else
     {
@@ -237,7 +235,7 @@ void loop()
             aJson.deleteItem(commentJSONArray);
 
             printDebugMsg("msgs ", true);
-            printDebugMsg(String(numMsgs));
+            printDebugMsg(numMsgs);
 
             if (numMsgs > 0)
             {
@@ -272,8 +270,8 @@ void loop()
         state = digitalRead(Switches[1]);
     
         printDebugMsg("vals ", true);
-        printDebugMsg(String(state));
-        printDebugMsg(String(SwitchStates[1]));
+        printDebugMsg(state);
+        printDebugMsg(SwitchStates[1]);
 
         if (state != SwitchStates[1])
         {
@@ -298,7 +296,7 @@ void loop()
             updateDisplay();
 
             printDebugMsg("LIKE:", true);
-            printDebugMsg(String(comments[msgReadIndex].messageID));
+            printDebugMsg(comments[msgReadIndex].messageID);
         }
         if (digitalRead(Buttons[0]) == LOW && ButtonStates[0])
         {
@@ -311,7 +309,7 @@ void loop()
             comments[msgReadIndex].iBookmarked = !comments[msgReadIndex].iBookmarked;
 
             printDebugMsg("BKMK:", true);
-            printDebugMsg(String(comments[msgReadIndex].messageID));
+            printDebugMsg(comments[msgReadIndex].messageID);
             updateDisplay();
         }
         if (digitalRead(Buttons[1]) == LOW && ButtonStates[1])
@@ -334,7 +332,8 @@ void loop()
                 y = map(
                     newPotPosition, 0, 100, 0, -(1 + numLinesRequiredForCurrentMsg - maxCharsY));
             }
-            Serial.println(y);
+
+            printDebugMsg(y);
             oldPotPosition = newPotPosition;
             updateDisplay();
         }
@@ -351,9 +350,9 @@ void updateDisplay()
 
     printDebugMsg(y, true);
     printDebugMsg(" ", true);
-    printDebugMsg(String(msgReadIndex), true);
+    printDebugMsg(msgReadIndex, true);
     printDebugMsg(" ", true);
-    printDebugMsg(String(comments[msgReadIndex].message));
+    printDebugMsg(comments[msgReadIndex].message);
 
     if (comments[msgReadIndex].iLiked)
     {
@@ -385,17 +384,20 @@ void writeTextWithoutSplittingWords(String text)
     String formattedOutput = "";
     String line = "";
     int spacesLeftOnLine = maxCharsX;
-    Serial.println(charIndex);
+
+    printDebugMsg(charIndex);
     while (charIndex < text.length())
     {
-        Serial.println(charIndex);
+        printDebugMsg(charIndex);
         int newCharIndex = text.indexOf(" ", charIndex);
         if (newCharIndex == -1)
         {
             newCharIndex = text.length();
         }
+
         String word = text.substring(charIndex, newCharIndex);
-        Serial.println(word);
+        printDebugMsg(word);
+
         int wordLength = newCharIndex - charIndex;
         if (spacesLeftOnLine == maxCharsX)
         {
@@ -410,7 +412,7 @@ void writeTextWithoutSplittingWords(String text)
             }
             else
             {
-                // Serial.println("12");
+                printDebugMsg("12");
                 line = word.substring(0, spacesLeftOnLine);
                 printDebugMsg(line);
                 if (y + lineNumber >= 0)
