@@ -433,7 +433,7 @@ def get_msgs():
             
             msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
             msgs.reverse()
-            msgs = msgs[:-max_messages]
+            msgs = msgs[:math.min(-max_messages, len(msgs) )]
 
         print(msgs)
         msgs = id_to_name(msgs)
