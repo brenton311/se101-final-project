@@ -31,6 +31,8 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         RefreshableScrollView.idOfChatTarget = idOfChatTarget;
     }
 
+    private boolean offsetAfter = false;
+
     private static RefreshableScrollView meFeed;
     private static RefreshableScrollView meChat;
     private boolean isChat = false; //feed if not chat
@@ -106,6 +108,8 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             me.linear.removeView(me.linear.getChildAt(me.linear.getChildCount() - 1));
         }
         Comment targetView  = (Comment) me.linear.getChildAt(0);//used to focus if before
+        if (me.offsetAfter)
+            targetView  = (Comment) me.linear.getChildAt(me.linear.getChildCount()-1);
         if (before && NetworkingUtility.comments.length == 1) {//reached top
             idOfChatTarget = "";
         }
@@ -127,6 +131,11 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             else
                 me.linear.addView(cmt);
         }
+        if (me.offsetAfter) {
+            int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
+            targetView  = (Comment) me.linear.getChildAt(newIndexOfOldInitial+4);
+            targetView.getParent().requestChildFocus(targetView, targetView);
+        }
         if (before) {
             int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
             targetView  = (Comment) me.linear.getChildAt(newIndexOfOldInitial+4);
@@ -134,9 +143,12 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         }else
              me.createProgressBarLayoutBottom();
         me.finishRefresh();
+        if (me.offsetAfter)
+            me.offsetAfter = false;
         if (thenAddMore) {
             Comment cmt = (Comment) me.linear.getChildAt(me.linear.getChildCount() - 2);
             me.addMore(cmt.messageID);
+            me.offsetAfter = true;
         }
     }
 
