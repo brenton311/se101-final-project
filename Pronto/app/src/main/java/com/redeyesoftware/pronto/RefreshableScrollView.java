@@ -22,7 +22,11 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class RefreshableScrollView extends ScrollView implements View.OnTouchListener {
 
-    private static RefreshableScrollView me;
+    private static RefreshableScrollView meFeed;
+    private static RefreshableScrollView meChat;
+    private boolean isChat = false; //feed if not chat
+    private String urlEnd = "/inbox/feed/";
+    private String methodKeyEnd = "Feed";
     private float startY = -1, lastY = -1;
     private final int dragLength = 300;//min length of drag to reload
     private final int topMargin = 400;//top margin of progress
@@ -51,10 +55,31 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
         init();
     }
 
+    public RefreshableScrollView(Context context, boolean isChat) {
+        super(context);
+        parentAcivity = context;
+        this.isChat = isChat;
+        if (isChat) {
+            Log.d("Deebug","chatt");
+            urlEnd = "/inbox/main/";
+            methodKeyEnd = "Chat";
+        }else {
+            Log.d("Deebug","feed");
+            urlEnd = "/inbox/feed/";
+            methodKeyEnd = "Feed";
+        }
+        init();
+    }
+
     private void init() {
         setOnTouchListener(this);
-        me = this;
+        if (isChat) {
+            meChat =this;
+        } else {
+            meFeed = this;
+        }
     }
+
 
     public void setUpLayout(RelativeLayout content_rel_layout, LinearLayout linear) {
         this.content_rel_layout = content_rel_layout;
@@ -63,7 +88,8 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
 
-    public static void addCommentsToFeed(boolean addingMore) {
+    public static void addCommentsToFeed(boolean addingMore, boolean chat) {
+        RefreshableScrollView me = (chat)?meChat:meFeed;
         if (addingMore) {
             me.linear.removeView(me.linear.getChildAt(me.linear.getChildCount() - 1));
         }
@@ -78,7 +104,7 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             if (numBookmarks>0) numBookmarks++;
             if (numLikes==0 && NetworkingUtility.comments[i][4].length()>4) numLikes=1;
             if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
-            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6]);
+            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6], me.isChat);
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);
         }
@@ -87,33 +113,34 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
     }
 
     public static void removeCommentFromFeed(final int index) {
-        if (index<0||index >= me.linear.getChildCount()) {
+        //Todo: make this workfor chat if want to implement deleting
+        if (index<0||index >= meFeed.linear.getChildCount()) {
             Log.d("ERROR", "Tried to delete element at invalid index");
             return;
         }
-        ((MainPage)me.parentAcivity).runOnUiThread(new Runnable() {
+        ((MainPage)meFeed.parentAcivity).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                me.linear.removeView(me.linear.getChildAt(index));//index needed to be final to be used by this inner class
+                meFeed.linear.removeView(meFeed.linear.getChildAt(index));//index needed to be final to be used by this inner class
             }
         });
     }
 
-    public static void refresh() {
-        SharedPreferences prefs = me.parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
+    public void refresh() {
+        SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
         //Log.d("got prefs accesstoken",token);
         //smartest in canada 1127396163964738
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551","", "fillFeed", new String[]{
+        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551","", "fill"+methodKeyEnd, new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
-        me.linear.removeAllViews();
+        linear.removeAllViews();
     }
 
     private void addMore(String start) {
         SharedPreferences prefs = parentAcivity.getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551",start, "addMoreToFeed", new String[]{
+        NetworkingUtility.getComments(urlEnd, token, 30, 20, "1150546131643551",start, "addMoreTo"+methodKeyEnd, new String[]{
                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
         });
     }

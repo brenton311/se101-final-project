@@ -43,10 +43,16 @@ public class NetworkingUtility {
     private static void callMethodOnFinished(String key) {
         switch (key) {
             case "fillFeed":
-                RefreshableScrollView.addCommentsToFeed(false);
+                RefreshableScrollView.addCommentsToFeed(false, false);
                 return;
             case "addMoreToFeed":
-                RefreshableScrollView.addCommentsToFeed(true);
+                RefreshableScrollView.addCommentsToFeed(true, false);
+                return;
+            case "fillChat":
+                RefreshableScrollView.addCommentsToFeed(false, true);
+                return;
+            case "addMoreToChat":
+                RefreshableScrollView.addCommentsToFeed(true, true);
                 return;
             case "fillTiva":
                 BluetoothActivity.sendCommentsToTiva();
@@ -65,7 +71,7 @@ public class NetworkingUtility {
         if (!start.equals("")) {
             newUrl += "&start="+start;
         }
-        //Log.d("Sending to this url", newUrl);
+        Log.d("Sending to this url", newUrl);
         // Request a string response from the provided URL.
         JsonArrayRequest req = new JsonArrayRequest(newUrl,
                 new Response.Listener<JSONArray>() {

@@ -74,7 +74,7 @@ public class BluetoothActivity extends AppCompatActivity {
     private void refresh() {
         SharedPreferences prefs = getSharedPreferences("PrefsFile", MODE_PRIVATE);
         String token = prefs.getString("accessToken", "ERROR: DID NOT READ");
-        NetworkingUtility.getComments("/inbox/main/", token, 30, 20, "1150546131643551","", "fillTiva", new String[]{
+        NetworkingUtility.getComments("/inbox/feed/", token, 30, 20, "1150546131643551","", "fillTiva", new String[]{
                 "author_id", "msg_id", "text", "likes", "bookmarks"
         });
     }
@@ -173,7 +173,7 @@ public class BluetoothActivity extends AppCompatActivity {
                                     if (data.substring(0,4).equals("LIKE")) {
                                         NetworkingUtility.post("/msg/like/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
                                     } else if (data.substring(0,4).equals("BKMK")) {
-                                        NetworkingUtility.getComments("/inbox/main/", token, 1, 1, "1150546131643551",data.substring(5,data.length()-1), "updateBookmarkFromBluetooth", new String[]{
+                                        NetworkingUtility.getComments("/inbox/feed/", token, 1, 1, "1150546131643551",data.substring(5,data.length()-1), "updateBookmarkFromBluetooth", new String[]{
                                                 "author_id", "msg_id", "text", "timestamp", "likes", "bookmarks", "attachments"
                                         });
                                         NetworkingUtility.post("/msg/bookmark/", new String[]{"access_token","msg_id"}, new String[]{token,data.substring(5,data.length()-1)});
@@ -216,8 +216,8 @@ public class BluetoothActivity extends AppCompatActivity {
     }
 
     private void showMessage(String theMsg) {
-        Toast msg = Toast.makeText(getBaseContext(), theMsg, (Toast.LENGTH_SHORT));
-        msg.show();
+        //Toast msg = Toast.makeText(getBaseContext(), theMsg, (Toast.LENGTH_SHORT));
+        //msg.show();
     }
 
     @Override

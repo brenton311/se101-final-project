@@ -97,7 +97,8 @@ public class BookmarksFragment extends Fragment {
             //public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark
             Comment cmt = new Comment(
                     me.getActivity(), bookmarkList.get(i).getMessageID(), bookmarkList.get(i).getMessage(), bookmarkList.get(i).getAuthor(),
-                    bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks(), true, true, bookmarkList.get(i).getAttachment()
+                    bookmarkList.get(i).getDate(),bookmarkList.get(i).getLikes(),bookmarkList.get(i).isiLiked(),bookmarkList.get(i).getBookmarks(),
+                    true, true, bookmarkList.get(i).getAttachment(), false
             );
             cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             me.linear.addView(cmt);

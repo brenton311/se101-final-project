@@ -61,20 +61,20 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
 
     public Comment(Context context) {
         super(context);
-        init();
+        init(false);
     }
 
     public Comment(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(false);
     }
 
     public Comment(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
+        init(false);
     }
 
-    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark, String attachment) {
+    public Comment(Context context, String messageID, String message, String author, String date, int likes, boolean iLiked, int bookmarks, boolean iBookmarked, boolean commentIsBookmark, String attachment, boolean isChat) {
         super(context);
         parentActivity = context;
         this.messageID = messageID;
@@ -87,7 +87,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         this.iBookmarked = iBookmarked;
         this.commentIsBookmark = commentIsBookmark;
         this.attachment = attachment;
-        init();
+        init(isChat);
     }
 
     private void remove() {
@@ -123,10 +123,11 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         );
     }
 
-    private void init() {
+    private void init(boolean isChat) {
         inflate(getContext(), R.layout.comment_template, this);
 
-        setOnTouchListener(this);
+        if (!isChat)
+            setOnTouchListener(this);
 
         ((TextView)(findViewById(R.id.message))).setText(message);
         ((TextView)(findViewById(R.id.author))).setText(author);
@@ -150,7 +151,7 @@ public class Comment extends FrameLayout implements View.OnTouchListener {
         if (attachment.length() > 1) {
             //  ImageView img= ((ImageView)(findViewById(R.id.img)));
             //  img.setImageResource(R.drawable.eyes);
-            new DownloadImageTask((ImageView) findViewById(R.id.img)).execute(attachment);
+            //new DownloadImageTask((ImageView) findViewById(R.id.img)).execute(attachment);
         }
 
         if (message.length()==0) {
