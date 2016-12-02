@@ -124,12 +124,14 @@ public class RefreshableScrollView extends ScrollView implements View.OnTouchLis
             if (numBookmarks>0) numBookmarks++;
             if (numLikes==0 && NetworkingUtility.comments[i][4].length()>4) numLikes=1;
             if (numBookmarks==0 && NetworkingUtility.comments[i][5].length()>4) numBookmarks=1;
-            Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes,iLiked,numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6], me.isChat);
-            cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            if (before || thenAddMore)//the former b/c need to apend to front; the latter b/c need to add in reverse order
-                me.linear.addView(cmt,0);
-            else
-                me.linear.addView(cmt);
+            if (NetworkingUtility.comments[i][2].length()>1 || NetworkingUtility.comments[i][6].length()>1) {
+                Comment cmt = new Comment(me.parentAcivity, NetworkingUtility.comments[i][1], NetworkingUtility.comments[i][2], NetworkingUtility.comments[i][0], time, numLikes, iLiked, numBookmarks, iBookmarked, false, NetworkingUtility.comments[i][6], me.isChat);
+                cmt.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                if (before || thenAddMore)//the former b/c need to apend to front; the latter b/c need to add in reverse order
+                    me.linear.addView(cmt, 0);
+                else
+                    me.linear.addView(cmt);
+            }
         }
         if (me.offsetAfter) {
             int newIndexOfOldInitial = me.linear.indexOfChild(targetView);
