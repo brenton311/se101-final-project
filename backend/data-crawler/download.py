@@ -42,11 +42,11 @@ def download_latest_msgs(num_msgs, chat_id):
     "client": "web_messenger", 
     "__user": "100014262394138", 
     "__a": "1", 
-    "__dyn": "7AmajEzUGByAZ112u6W85k2mq2WiWF7By8Z9LFwxBxCbzEeAq2i5U4e2CEaUgxebkwy3eF8W49XDG4XzEa8iyUpwGDwPKq4GCzEkxu9AzUO5onwnoCium8yUgx66EK3Ou49LZ1HgkBx-2jAyEhzE-49oG9z8Ccw", 
+    "__dyn": "7AgNeCjyGgNfgggDxKA5Q2mq2WiWKum8zXrWo461lDwAxu13wm8gxZoK3eE99XyEjKewExW6oaFUcXCxmqewIyo8obo5S9ADxG48hwCwYDx2q-EsgkBx-2qi78WfwHz8Cew", 
     "__req": "3", 
-    "fb_dtsg": "AQGeWMltO3eO:AQGQBu78pCI6", 
-    "ttstamp": "265817110187771081167951101795865817181661175556112677354", 
-    "__rev": "2693755"}
+    "fb_dtsg": "AQFyfuqGUH4X:AQEwistzKm4K", 
+    "ttstamp": "2658170121102117113718572528858658169119105115116122751095275", 
+    "__rev": "2713261"}
     data = urllib.urlencode(data_text)
     url = "https://www.facebook.com/ajax/mercury/thread_info.php"
 

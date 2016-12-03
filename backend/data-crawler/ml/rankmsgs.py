@@ -75,7 +75,6 @@ def load_model_settings(db_name, group_id):
         if db[doc]['group_id'] == group_id:
             return db[doc]
     
-
 def save_model_settings(db_name, setttings):
     db = couch[db_name]
     db.save(settings)
@@ -102,10 +101,12 @@ if __name__ == '__main__':
     settings = load_model_settings('ml_data', '1150546131643551')
 
     weights = load_dict_to_vector(settings['weights'])
-
+    
     for m in msgs:
         tokenized = tokenize_msg(m, vocab.vocab)['words_freq']
         word_vector = load_dict_to_vector(tokenized)
+        print(word_vector)
+        
         rank = compute_rank(word_vector, weights)
         save_rank(m['_id'], msg_db, rank)
 
