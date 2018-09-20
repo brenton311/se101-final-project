@@ -1,0 +1,151 @@
+Setting up server:
+	Create a python3 env for server
+	Create a python2 env for data-crawler and ml
+	Install couchdb
+	Create databases: users, ml_data, msg_1150546131643551
+
+	After doing rest of setup:
+
+	Using tmux run a couchdb instance 
+
+	Optional: Using tmux run download-users.py
+		This used to not be optional but I changed server.py
+		and commented out the securty checks of userid against this database
+
+	run download-save.py [group_id] [#msgs] as a one time saving of messages
+
+	Optional: Using tmux run download.py to get real time msgs
+		Can edit time.sleep (last line of source) to edit update rate
+
+	getRankedMsgs will be sorted by score + running_score
+
+	Optional: run rnkmsgs.py to update score
+		This is the actual ML bit
+		Leaving this off is fine, just means no long term learning
+		ranking will bo done solely on time, likes, dislikes, bookmarks, etc
+
+	Optional: Using tmux run update_running_scores.py to update running_score
+		This could cause chaos as far as data goes
+		This is due to couchdb keeping old versions of documents,
+		wheneever running_score value is updated new doc
+		Solution:
+		Compaction is used to get rid of old instances
+		This can be done manually or automatically
+
+		http://edoceo.com/howto/couchdb-compaction
+		http://docs.couchdb.org/en/2.0.0/maintenance/compaction.html
+		http://docs.couchdb.org/en/2.0.0/config/compaction.html#compactions
+		https://wiki.apache.org/couchdb/Compaction/
+
+		tl;dr add 
+		'''
+		[compaction]
+		_default = [{db_fragmentation, "70%"}, {view_fragmentation, "60%"}]
+
+		[compaction_daemon]
+		check_interval = 100
+		'''
+
+		to  /etc/couchdb/local.ini file
+
+	Using tmux run server.py
+
+Setting up ml_data:
+	Create a single document:
+	ID and _rev not important
+	make usre it has group_id
+	make sure it has a relative weight for each keyword in vocb.py
+	{
+	"_id": "fa2187b9889b9d49b07ca25b49062738",
+	"_rev": "2-b249fe0ac9a53a62d1b82f9c61ae228e",
+	"group_id": "1150546131643551",
+	"weights": {
+	   "101": 1,
+	   "102": 1,
+	   "105": 1,
+	   "106": 1,
+	   "115": 1,
+	   "117": 1,
+	   "119": 1,
+	   "124": 1,
+	   "135": 1,
+	   "137": 1,
+	   "138": 1,
+	   "140": 1,
+	   "Lab": 1,
+	   "Cdt": 1,
+	   "Exam": 1,
+	   "Midterm": 1,
+	   "Test": 1,
+	   "Quiz": 1,
+	   "Assignment": 1,
+	   "Final": 1,
+	   "Mark": 1,
+	   "Launchpad": 1,
+	   "Answer": 1,
+	   "Due": 1,
+	   "Question": 1,
+	   "Problem": 1,
+	   "Bug": 1,
+	   "Error": 1,
+	   "Confirmed": 1,
+	   "Physic": 1,
+	   "se ": 1,
+	   "Cs ": 1,
+	   "Calc": 1,
+	   "Math": 1,
+	   "Circuit": 1,
+	   "Marmoset": 1,
+	   "Kennings": 1,
+	   "Mansour": 1,
+	   "Kohandel": 1,
+	   "Morton": 1,
+	   "Patrick": 1,
+	   "Lam": 1,
+	   "Andre": 1,
+	   "Godfrey": 1,
+	   "Zibaeenejad": 1,
+	   "Zib": 1,
+	   "Pei": 1,
+	   "Mon": 1,
+	   "Tues": 1,
+	   "Wed": 1,
+	   "Thurs": 1,
+	   "Fri": 1,
+	   "Today": 1,
+	   "Tomorrow": 1,
+	   "coop": 1,
+	   "rollen": 1,
+	   "abood": 1,
+	   "ta": 1,
+	   "help": 1
+	}
+	}
+
+Setting up msg_1150546131643551:
+
+	Create two new views:
+	getRankedMsgs, getGroupMsgs
+	js func code found in same directory as this text file
+
+	one method is to simply copy paste the functions via futon
+	Important!!
+		Save view as..
+		Design Document: _design/chats
+		View Name: getGroupMsgs  (or getRankedMsgs)
+
+
+How to update cookies:
+
+	Go to https://www.facebook.com/messages/t/1150546131643551
+
+	Developer settings
+	Network
+	Name will be one of the many graphqlbatch/
+
+	Fields to update:
+	cookie, _dyn
+
+	Feilds to update if changing user (prontobot <-> george eisa):
+
+	user, referer, fb_dtsg

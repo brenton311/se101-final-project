@@ -6,7 +6,7 @@
 import time
 import math
 import couchdb
-couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
+couch = couchdb.Server()
 
 def compute_rank(num_likes, num_dislikes, num_bookmarks, time_delta):
     return num_likes - 3 * num_dislikes + 10 * num_bookmarks - 0.1 * (time_delta)

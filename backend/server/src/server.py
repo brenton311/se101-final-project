@@ -5,7 +5,7 @@ import couchdb
 import json
 
 application = Flask(__name__)
-couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
+couch = couchdb.Server()
 fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
 ######################################################################
@@ -48,6 +48,9 @@ def id_to_name(msgs):
     for m in msgs:
         if m['author_id'] in users:
             users.append(m['author_id'])
+
+    if len(msgs) == 0:
+        return []
         
     # Get all users info
     graph_url = "https://graph.facebook.com/?ids="
@@ -58,8 +61,13 @@ def id_to_name(msgs):
     graph_url += '&access_token=' + fb_key
 
     user_data = json.loads(download_text(graph_url))
+
     for msg in msgs:
-        msg['author_id'] = user_data[msg['author_id']]['name']
+        old_author = msg['author_id']
+        try:
+            msg['author_id'] = user_data[msg['author_id']]['name']
+        except:
+            msg['author_id'] = old_author
 
     return msgs
 
@@ -144,7 +152,10 @@ def like_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
+
+    #if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
+    #geisa
+    if True:
 
         # Old messages have like as an integer
         if type(msg['likes']) is not list:
@@ -188,7 +199,11 @@ def dislike_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
+
+    #if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
+    #geisa
+    if True:
+
         # Old messages have like as an integer
         if type(msg['dislikes']) is not list:
             msg['dislikes'] = []
@@ -231,8 +246,9 @@ def bookmark_msg():
 
     # Make sure the user is in the group where the message 
     # is published
-    if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
-
+    #if msg['group_id'] in get_user_groups(user_id_to_app_id(fb_id))[0]: # Uses 0 because it is an [] of [] by accident
+    #geisa
+    if True:
         # Old messages have like as an integer
         if type(msg['bookmarks']) is not list:
             print('Reset likes')
@@ -354,6 +370,9 @@ def get_feed():
             return jsonify(response)
 
         # Check if the user is in the group
+
+        '''
+        geisa
         groups = get_user_groups(fb_id)
         print(groups)
 
@@ -361,6 +380,7 @@ def get_feed():
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
+        '''
 
         # If no starting message is provided, start with the newest
         # TODO: Add check for specific group
@@ -372,14 +392,16 @@ def get_feed():
             gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, startkey=msg_to_start, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
         else:
             gen = db.iterview('chats/getRankedMsgs', 20, limit=max_messages, descending=True)# 'startkey="41b40f7d7e0037e9f16195cf0a07422a"&descending=true&limit=10')
+
         msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
-        print(msgs)
+        #print(msgs)
         msgs = id_to_name(msgs)
 
         return jsonify(msgs)
 
+    
     except Exception as e:
-        raise e
+         raise e
 
 
 @application.route("/inbox/main/", methods=['GET'])
@@ -395,7 +417,8 @@ def get_msgs():
         max_messages = min(max_messages, 100)
         db = couch['msg_{}'.format(group_id)]
 
-        response = {'status': 'ok'}    
+        response = {'status': 'ok'}   
+
 
         # Check if token is valid
         fb_id = verify_token(access_token, fb_key)
@@ -405,25 +428,30 @@ def get_msgs():
             return jsonify(response)
 
         # Check if the user is in the group
+        '''
+        geisa uncomment
         groups = get_user_groups(fb_id)
-        print(groups)
 
+        
         if group_id not in get_user_groups(user_id_to_app_id(fb_id))[0]:
             response['status'] = 'error'
             response['error-msg'] = 'You are not in the group!'
             return jsonify(response)
+        '''
 
         # If no starting message is provided, start with the newest
         # TODO: Add check for specific group
         gen = None
         msgs = None
         if max_messages > 0:
+
             if start_msg is not None:
+                print('Starting at ' + start_msg)
                 gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, startkey=start_msg, descending=True)
             else:
                 gen = db.iterview('chats/getGroupMsgs', 20, limit=max_messages, descending=True)
 
-            msgs = [m.value for m in gen if fb_id not in m.value['dislikes']]
+            msgs = [m.value for m in gen if fb_id not in m.value['dislikes']] 
 
         # User wants the messages in reverse order
         elif max_messages < 0:
@@ -439,13 +467,13 @@ def get_msgs():
             msgs.reverse()
             msgs = msgs[:min(-max_messages, len(msgs) )]
 
-        print(msgs)
+        #print(msgs)
         msgs = id_to_name(msgs)
 
         return jsonify(msgs)
 
     except Exception as e:
-        raise e
+         raise e
 
 if __name__ == "__main__":
     application.debug = True

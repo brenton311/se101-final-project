@@ -2,10 +2,10 @@ import couchdb
 import requests
 import json
 
-couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
+couch = couchdb.Server()
 # fb_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 access_token = 'EAACEdEose0cBANyVWEjLyGM2ONoGM74ilgaYPNntZANxpsd4n3a5Y6SbL810mZCuV0aWyd8x1dxqRhT31udrqBf4odV1cbgxQq6aCzrZBM3mMUHeBTMXPO0tfxGxLY6fR3LHwHva0ha6RHo7BQllIZCIy18dbp6ZB8jpjccF89YZCCB8M1fBey'
-
+#access_token = "EAAYHFNtS8ZB8BAEjphh8iZCNDPxgwEC8hK4qHGGwA5NZCQWg3i6dmWYNUzZCh619Kv5zyVgNp8rzRVtAn01yz7z7W3ftYpFVVJPQgYZCSbwWWaW8gCT7cGCkcbur5fCSlZB8mHrG0NLsF62uq8C9JDji9ZAjDwuBbcov6iitxdCIWxJLrOYWn9kUZAVZCzCUjZBgutgTMZCQdArjbItis5Gu5ZCWhgu9fZAy1JcsZD"
 
 def download_text(url):
     r = requests.get(url)
@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     # print(json_data)
     group_match = None
+    print("test" + str(json_data))
     for group in json_data['data']:
         if group['id'] == group_id:
             group_match = group

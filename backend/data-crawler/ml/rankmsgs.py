@@ -7,7 +7,7 @@ except:
 
 import numpy as np
 import couchdb
-couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
+couch = couchdb.Server()
 
 """
     Extracts all the info from each message

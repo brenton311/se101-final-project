@@ -1,6 +1,6 @@
 import couchdb
 
-couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
+couch = couchdb.Server()
 
 if __name__ == '__main__':
     db = couch['msg_1150546131643551']

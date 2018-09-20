@@ -1,7 +1,7 @@
 import couchdb
 import sys
 
-couch = couchdb.Server('http://dev:pronto@prontoai.com:5984')
+couch = couchdb.Server()
 
 if __name__ == '__main__':
     group_id = sys.argv[1]

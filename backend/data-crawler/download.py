@@ -15,7 +15,7 @@ import couchdb
 
 # from ml import rankmsgs as ranking
 
-couch = couchdb.Server('http://dev:pronto@0.0.0.0:5984')
+couch = couchdb.Server()
 
 app_key = "1117295381688482|EwDDv3rzCr5C-9QwpSm6qkE-7L8"
 
